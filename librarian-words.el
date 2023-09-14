@@ -1,5 +1,11 @@
 ;; -*- mode:emacs-lisp; -*- lexical-bindings: t; -*-
 
+(require 'synosaurus)
+(require 'wordnut)
+(require 'define-word)
+(require 'osx-dictionary)
+(require 'helm-wordnet)
+
 (defvar librarian-dictionary-prefer-offline nil)
 
 (defun librarian-words--definition (identifier &optional arg)

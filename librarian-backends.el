@@ -22,13 +22,19 @@
 ;;; Code:
 ;;-- end header
 
+(require 'thingatpt)
+(require 'eldoc)
+(require 'ivy)
+(require 'xref)
+(require 'evil)
+(require 'counsel)
+
 (unless (boundp 'counsel-search-engine)
   (defvar counsel-search-engine nil))
 (unless (boundp 'ivy-initial-inputs-alist)
   (defvar ivy-initial-inputs-alist nil))
 
 (defvar librarian-online--amazon-url "")
-
 
 (defun librarian-backend--browser-amazon (url &rest args)
   ;; TODO Handle US and UK

@@ -1,4 +1,6 @@
-;;; tools/lookup/autoload/docsets.el -*- lexical-binding: t; -*-
+;;; librarian-docsets.el -*- lexical-binding: t; -*-
+
+(require 'dash-docs)
 
 (unless (boundp 'dash-docs-docsets)
   (defvar dash-docs-docsets nil))

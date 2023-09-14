@@ -29,7 +29,7 @@
   2. A non-interactive function that returns the search url in #1,
   3. An interactive command that does its own search for that provider.
 
-Used by `+lookup/online'.")
+Used by `librarian-online'.")
 
 (defvar librarian-online--open-url #'browse-url "Function to use to open search urls.")
 

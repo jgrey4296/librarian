@@ -23,49 +23,49 @@
 ;;-- end header
 
 (require 'bibtex)
-(require 'bibtex)
+(require 'bibtex-completion)
 (require 'org-ref-bibtex)
 
 (defvar librarian-curl-cmd  "curl")
 
 (defvar librarian-curl-args  '("-sLI"))
 
-(defconst jg-bibtex-meta-buffer "*Metadata*")
+(defconst librarian-bibliography--meta-buffer "*Metadata*")
 
-(defconst jg-bibtex-meta-program "ebook-meta")
+(defconst librarian-bibliography--meta-program "ebook-meta")
 
-(defconst jg-bibtex-meta-opts '(("title     " . "-t")
-                                ("author    " . "-a")
-                                ("comments  " . "-c")
-                                ("publisher " . "-p")
-                                ("series    " . "-s")
-                                ("number    " . "-i")
-                                ("rating    " . "-r")
-                                ("date      " . "-d")
-                                ("isbn      " . "--isbn")
-                                ("ident     " . "--identifier=")
-                                ("tags      " . "--tags=")
-                                ("category  " . "--category=")
-                                ("*Apply*")))
+(defconst librarian-bibliography--meta-opts '(("title     " . "-t")
+                                              ("author    " . "-a")
+                                              ("comments  " . "-c")
+                                              ("publisher " . "-p")
+                                              ("series    " . "-s")
+                                              ("number    " . "-i")
+                                              ("rating    " . "-r")
+                                              ("date      " . "-d")
+                                              ("isbn      " . "--isbn")
+                                              ("ident     " . "--identifier=")
+                                              ("tags      " . "--tags=")
+                                              ("category  " . "--category=")
+                                              ("*Apply*")))
 
-(defun +jg-bibtex-build-list ()
+(defun librarian-bibliography--build-list ()
   "Build a list of all bibtex files to use for bibtex-helm "
   (interactive)
-  (setq bibtex-completion-bibliography (directory-files jg-bibtex-loc-bibtex 't "\.bib$")
-        jg-bibtex-helm-candidates nil
+  (setq bibtex-completion-bibliography (directory-files librarian-bibliography--loc-bibtex 't "\.bib$")
+        librarian-bibliography--helm-candidates nil
         )
   (bibtex-completion-clear-cache)
   (bibtex-completion-init)
-  (mapcar #'+jg-bibtex-process-candidates (bibtex-completion-candidates))
+  (mapcar #'librarian-bibliography--process-candidates (bibtex-completion-candidates))
   )
 
-(defun +jg-bibtex-meta-retrieval ()
-  " Use 'jg-bibtex-meta-program to retrieve metadata about files in current bibtex entry "
+(defun librarian-bibliography--meta-retrieval ()
+  " Use 'librarian-bibliography--meta-program to retrieve metadata about files in current bibtex entry "
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
     (let* ((entry (bibtex-parse-entry))
-           (files (-filter #'identity (mapcar #'+jg-bibtex-get-files-fn entry)))
+           (files (-filter #'identity (mapcar #'librarian-bibliography--get-files-fn entry)))
            (procs (cl-loop for file in files
                             collect
                             (start-process
@@ -73,26 +73,26 @@
                              (format "*bib:meta:%s*" (f-base file))
                              "ebook-meta"
                              (expand-file-name
-                              (if (f-relative? file) (f-join jg-bibtex-pdf-loc file) file))
+                              (if (f-relative? file) (f-join librarian-bibliography--pdf-loc file) file))
                              )
                             )
                    )
            )
-      (with-process-wrap! jg-bibtex-meta-buffer procs)
+      (with-process-wrap! librarian-bibliography--meta-buffer procs)
       )
     )
   )
 
-(defun +jg-bibtex-apply-meta ()
+(defun librarian-bibliography--apply-meta ()
   " Use Calibre's ebook-meta program to take bibtex data and apply it to a pdf or epub "
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
     (let* ((arg-pairs nil)
            (entry (bibtex-parse-entry))
-           (targets (-filter #'identity (mapcar #'+jg-bibtex-get-files-fn entry)))
+           (targets (-filter #'identity (mapcar #'librarian-bibliography--get-files-fn entry)))
            (keys (mapcar #'car entry))
-           (meta-opts jg-bibtex-meta-opts)
+           (meta-opts librarian-bibliography--meta-opts)
           current
           options
           )
@@ -121,37 +121,37 @@
 
       (ivy-read "Apply Metadata to: "
                 (mapcar #'(lambda (x) (cons (f-base x) x)) targets)
-                :multi-action (-partial #'+jg-bibtex-apply-meta-fn options)
-                :action (-partial #'+jg-bibtex-apply-meta-solo-fn options)
+                :multi-action (-partial #'librarian-bibliography--apply-meta-fn options)
+                :action (-partial #'librarian-bibliography--apply-meta-solo-fn options)
                 )
 
       )
     )
   )
 
-(defun +jg-bibtex-apply-meta-solo-fn (args file)
-  (+jg-bibtex-apply-meta-fn args (list file))
+(defun librarian-bibliography--apply-meta-solo-fn (args file)
+  (librarian-bibliography--apply-meta-fn args (list file))
   )
 
-(defun +jg-bibtex-apply-meta-fn (args files)
-  (with-process-wrap! jg-bibtex-meta-buffer
+(defun librarian-bibliography--apply-meta-fn (args files)
+  (with-process-wrap! librarian-bibliography--meta-buffer
                       (cl-loop for file in files
                                collect
                                (apply #'start-process
                                       (format "meta:apply:%s" (f-base (cdr file)))
                                       (format "*meta:apply:%s*" (f-base (cdr file)))
-                                      jg-bibtex-meta-program
+                                      librarian-bibliography--meta-program
                                       (cdr file)
                                       args
                                       )
                                )
                       )
-  (with-current-buffer jg-bibtex-meta-buffer
+  (with-current-buffer librarian-bibliography--meta-buffer
     (insert (format "Process Args: %s\n" args))
     )
   )
 
-(defun +jg-bibtex-set-ebook-cover ()
+(defun librarian-bibliography--set-ebook-cover ()
   " Use Calibre's ebook-meta program to select an image and apply it as an epub's cover image "
   (interactive)
   (save-excursion
@@ -162,7 +162,7 @@
            (cover nil)
            (target (start-process
                     ("meta:cover:%s"
-                    jg-bibtex-meta-program
+                    librarian-bibliography--meta-program
                     (bibtex-autokey-get-field "file"))))
 
            )
@@ -170,14 +170,14 @@
     )
   )
 
-(defun +jg-bibtex-update-entry ()
+(defun librarian-bibliography--update-entry ()
   (interactive)
   (when (org-ref-bibtex-entry-doi)
     (doi-utils-update-bibtex-entry-from-doi (org-ref-bibtex-entry-doi))
     )
   )
 
-(defun +jg-bibtex-insert-entry-from-doi ()
+(defun librarian-bibliography--insert-entry-from-doi ()
   (interactive)
   (let* ((doi (read-string "Doi: "))
          (results (funcall doi-utils-metadata-function doi))
@@ -213,7 +213,7 @@
     )
   )
 
-(defun +jg-bibtex-refile-pdf (&optional destructive)
+(defun librarian-bibliography--refile-pdf (&optional destructive)
   " Refile a pdf from its location to its pdflib/year/author loc
 returns the new location
 "
@@ -223,8 +223,8 @@ returns the new location
     (let* ((entry  (bibtex-parse-entry))
            (author (s-capitalize (bibtex-autokey-get-names)))
            (year   (bibtex-text-in-field "year"))
-           (files  (-filter #'identity (mapcar #'+jg-bibtex-get-files-fn entry)))
-           (pdflib jg-bibtex-pdf-loc)
+           (files  (-filter #'identity (mapcar #'librarian-bibliography--get-files-fn entry)))
+           (pdflib librarian-bibliography--pdf-loc)
            (finalpath (f-join pdflib year author))
            newlocs)
       (make-directory finalpath 'parents)
@@ -257,7 +257,7 @@ returns the new location
     )
   )
 
-(defun +jg-bibtex-refile-by-year ()
+(defun librarian-bibliography--refile-by-year ()
   " Kill the current entry and insert it in the appropriate year's bibtex file "
   (interactive)
   (bibtex-beginning-of-entry)
@@ -265,7 +265,7 @@ returns the new location
          (year-file (format "%s.bib" year))
          (response (when year (read-string (format "Refile to %s? " year-file))))
          (target (if (or (s-equals? "y" response) (string-empty-p response))
-                     (f-join jg-bibtex-loc-bibtex year-file)
+                     (f-join librarian-bibliography--loc-bibtex year-file)
                    (completing-read "Bibtex file: "
                                     (f-entries bib-path
                                                (lambda (f) (f-ext? f "bib"))))))
@@ -273,7 +273,7 @@ returns the new location
     (unless (f-exists? target)
       (f-touch target)
       )
-    (+jg-bibtex-refile-pdf current-prefix-arg)
+    (librarian-bibliography--refile-pdf current-prefix-arg)
     (bibtex-kill-entry)
     (with-temp-buffer
       (insert-file-contents target)
@@ -285,11 +285,11 @@ returns the new location
     )
   )
 
-(defun +jg-bibtex-refile-to-unsourced ()
+(defun librarian-bibliography--refile-to-unsourced ()
   " Kill the current entry and insert it in the appropriate year's bibtex file "
   (interactive)
   (bibtex-beginning-of-entry)
-  (let* ((target jg-bibtex-unsourced-bib-file)
+  (let* ((target librarian-bibliography--unsourced-bib-file)
          (response (read-string "Refile to unsourced? "))
          )
     (unless (f-exists? target) (f-touch target))
@@ -303,5 +303,6 @@ returns the new location
       )
     )
 )
+
 (provide 'librarian-bibliography)
 ;;; librarian-bibliography.el ends here

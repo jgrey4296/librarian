@@ -45,24 +45,6 @@ returns a str, potentially with text properties"
       (setq librarian--xwidget-webkit-last-session-buffer xwidget-webkit-last-session-buffer
             xwidget-webkit-last-session-buffer orig-last-session-buffer))))
 
-(evil-define-command evil-librarian-online (query &optional bang)
-  "Look up QUERY online. Will prompt for search engine the first time, then
-reuse it on consecutive uses of this command. If BANG, always prompt for search
-engine."
-  (interactive "<a><!>")
-  (librarian-online query (librarian--online-provider bang 'evil-ex)))
-
-(evil-define-command evil-librarian-dash (query &optional bang)
-  "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
-install it if necessary)."
-  (interactive "<a><!>")
-  (let (selected)
-    (when bang
-      (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
-      (unless (dash-docs-docset-path selected)
-        (librarian-install-docset selected)))
-    (librarian-in-docsets query selected)))
-
 (defun librarian--regain-focus ()
   " utility to regain focus when a command will
 change focus to something else (preview, firefox)
@@ -175,11 +157,32 @@ Otherwise, falls back on `find-file-at-point'."
     )
   )
 
-(defadvice! +lookup--fix-ivy-xrefs (fn fetcher alist)
+(evil-define-command evil-librarian-online (query &optional bang)
+  "Look up QUERY online. Will prompt for search engine the first time, then
+reuse it on consecutive uses of this command. If BANG, always prompt for search
+engine."
+  (interactive "<a><!>")
+  (librarian-online query (librarian--online-provider bang 'evil-ex)))
+
+(evil-define-command evil-librarian-dash (query &optional bang)
+  "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
+install it if necessary)."
+  (interactive "<a><!>")
+  (let (selected)
+    (when bang
+      (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
+      (unless (dash-docs-docset-path selected)
+        (librarian-install-docset selected)))
+    (librarian-in-docsets query selected)))
+
+(defun librarian--fix-ivy-xrefs (fn fetcher alist)
   "HACK Fix #4386: `ivy-xref-show-xrefs' calls `fetcher' twice, which has
   side effects that breaks in some cases (i.e. on `dired-do-find-regexp')."
-  :around #'ivy-xref-show-xrefs
   (when (functionp fetcher)
     (setf (alist-get 'fetched-xrefs alist)
           (funcall fetcher)))
   (funcall fn fetcher alist))
+
+(advice-add #'ivy-xref-show-xrefs :around #'librarian--fix-ivy-refs)
+
+(provide 'librarian-utils)

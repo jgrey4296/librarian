@@ -29,8 +29,6 @@
 
 (defvar librarian-regular--location nil)
 
-(defvar librarian-regular-minor-mode-map (make-sparse-keymap))
-
 (defvar-local librarian-regular--targets nil)
 
 (define-minor-mode librarian-regular-minor-mode
@@ -39,7 +37,7 @@ files of urls in librarian-regular--location "
   :init-value nil
   :lighter "librarian-regular"
   ;; :global t
-  :keymap librarian-regular-minor-mode-map
+  :keymap nil
   (setq-local librarian-regular--targets
               (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
                        when (f-exists? (f-join librarian-regular--location (symbol-name mode)))
@@ -77,7 +75,6 @@ files of urls in librarian-regular--location "
 
 (define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode librarian-regular-minor-mode/turn-on)
 
-;;;###autoload
 (defun librarian-regular-go ()
   (interactive)
   (ivy-read "Lookup: "

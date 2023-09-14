@@ -1,5 +1,9 @@
 ;;; browse.el -*- lexical-binding: t; -*-
 
+(require 'eww)
+
+(defconst librarian-browser-buffer-name "*librarian browser*")
+
 (defvar librarian-default-browser "firefox")
 
 (defvar librarian-browser-use-preview t)
@@ -16,7 +20,8 @@
   " Get a list of possible browsers to use from persistent file"
   (with-temp-buffer
     (insert-file (expand-file-name librarian-browser-variants-file))
-    (setq librarian-browser-variants (split-string (buffer-string) "\n" t " +"))
+    (mapc #'(lambda (x) (add-to-list 'librarian-browser-variants x))
+           (split-string (buffer-string) "\n" t " +"))
     )
   )
 
@@ -36,21 +41,21 @@
            (setq librarian-browser-use-preview (not librarian-browser-use-preview)))
   )
 
-(defun librarian-browser--default (url &rest args)
+(defun librarian-browser--open-url (url &rest args)
   " Find and call the appropriate browser program,
 after `browse-url-handlers` have processed the url
 "
   (cond ((-contains? args 'quicklook)
-         (start-process "open-ql" "*browse-select*" "qlmanage" "-p" (shell-quote-argument url)))
+         (start-process "open-ql" librarian-browser-buffer-name "qlmanage" "-p" (shell-quote-argument url)))
         ((and (-contains? args 'local) (f-ext? url "epub"))
-         (apply 'start-process "open-epub" "*browse-select*" "open" url librarian-epub-args)
+         (apply 'start-process "open-epub" librarian-browser-buffer-name "open" url librarian-epub-args)
          )
         ((and (-contains? args 'local) (f-ext? url "pdf") librarian-browser-use-preview)
-         (apply 'start-process "open-pdf" "*browse-select*" "open" url librarian-pdf-args)
+         (apply 'start-process "open-pdf" librarian-browser-buffer-name "open" url librarian-pdf-args)
          )
         ((not (s-equals? librarian-default-browser "eww"))
          (message "Using %s" librarian-default-browser)
-         (start-process "open-url" "*browse-select*" librarian-default-browser url)
+         (start-process "open-url" librarian-browser-buffer-name librarian-default-browser url)
          )
         (t
          (eww-browse-url url args))
@@ -60,4 +65,4 @@ after `browse-url-handlers` have processed the url
   ;; (librarian-browser-regain-focus)
   )
 
-(provide 'browse-select)
+(provide 'librarian-browser)

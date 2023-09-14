@@ -12,7 +12,7 @@
 
 (defvar librarian-configs--spec-def-file-name "+spec-defs.el")
 
-(defun librarian-configs--cache-modules ()
+(defun librarian-configs--build--modules-cache ()
   (let* ((root librarian-configs--modules-dir)
          (groups (f-directories (f-join librarian-configs--modules-dir "modules")))
          (modules (cl-loop for group in groups
@@ -23,7 +23,6 @@
     )
   )
 
-;;;###autoload
 (defun librarian-configs--edit-bindings ()
   (interactive)
   (unless librarian-configs--modules-cache (librarian-configs--cache-modules))
@@ -38,7 +37,6 @@
     )
   )
 
-;;;###autoload
 (defun librarian-configs--edit-vars ()
   (interactive)
   (unless librarian-configs--modules-cache (librarian-configs--cache-modules))
@@ -53,7 +51,6 @@
     )
   )
 
-;;;###autoload
 (defun librarian-configs--edit-config ()
   (interactive)
   (unless librarian-configs--modules-cache (librarian-configs--cache-modules))
@@ -68,7 +65,6 @@
     )
   )
 
-;;;###autoload
 (defun librarian-configs--edit-spec-defs ()
   (interactive)
   (unless librarian-configs--modules-cache (librarian-configs--cache-modules))

@@ -22,40 +22,61 @@
 ;;
 ;;; Code:
 ;;-- end header
-(require 'cl-lib)
-(require 'ivy)
-(require 'counsel)
-(require 'browse-url)
-(require 'dash)
-(require 'dash-docs)
-(require 'counsel-dash)
-(require 'xref)
-(require 'better-jumper)
-(require 'thingatpt)
-(require 'evil)
-(require 'eldoc)
+
 (require 'f)
+(require 'cl-lib)
 (require 's)
-(require 'helpful)
+(require 'dash)
+
+(require 'better-jumper)
+(require 'browse-url)
+(require 'counsel-dash)
+
 (require 'free-keys)
+(require 'helpful)
 (require 'xref)
-(require 'bibtex)
-(require 'bibtex-completion)
-(require 'wordnut)
-(require 'osx-dictionary)
-(require 'synosaurus)
-(require 'helm-wordnet)
-(require 'define-word)
+(require 'browse-url)
+
+(require 'librarian-utils)
 
 (define-minor-mode librarian-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :global t
   :lighter (:eval (format "Browser: %s" librarian-default-browser))
   :keymap (make-sparse-keymap)
-  (setq xref-show-definitions-function #'ivy-xref-show-defs
-        xref-show-xrefs-function       #'ivy-xref-show-xrefs
-        browse-url-browser-function #'librarian-url
+  (message "Librarian: %s" librarian-mode)
+  (if librarian-mode
+      (progn ;; activating
+        (evil-make-intercept-map librarian-mode-map)
+        (require 'librarian-backend)
+        (require 'librarian-words)
+        (require 'librarian-browser)
+        (require 'librarian-configs)
+        (require 'librarian-docsets)
+        (require 'librarian-documentation)
+        (require 'librarian-man)
+        (require 'librarian-online)
+        (require 'librarian-regular)
+        (global-librarian-regular-minor-mode 1)
+        (librarian-browser-load-variants)
+        (unless (not (and (boundp 'librarian-configs--modules-cache) librarian-configs--modules-cache))
+          (librarian-configs--build-modules-cache))
+        
+        ;; (require 'librarian-tagging)
+        (setq xref-show-definitions-function #'ivy-xref-show-defs
+              xref-show-xrefs-function       #'ivy-xref-show-xrefs
+              browse-url-browser-function    #'browse-url-default-browser ;;#'librarian-browser--open-url
+              browse-url-handlers nil
+              browse-url-default-handlers '(
+                                            ("." . librarian-browser--open-url)
+                                            )
+              )
         )
+    (progn ;; deactivating
+      (global-librarian-regular-minor-mode -1)
+      (setq browse-url-browser-function #'browse-url-default-browser)
+      )
+    )
 )
 
 (defun librarian-debug ()
@@ -100,7 +121,7 @@ registered url handlers
           ((f-exists? url)
            (shell-command (format "open %s" url)))
           (t
-           (call-interactively #'librarian-online url) ;;TODO
+           (call-interactively #'librarian-online) ;;TODO
            )
           )
     )
