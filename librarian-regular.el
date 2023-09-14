@@ -23,21 +23,29 @@
 
 ;;-- end header
 
-;;-- mode definition
+(defconst librarian-regular--splitter "#")
+
+(defvar librarian-regular--cache (make-hash-table))
+
+(defvar librarian-regular--location nil)
+
+(defvar librarian-regular-minor-mode-map (make-sparse-keymap))
+
+(defvar-local librarian-regular--targets nil)
 
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
-files of urls in librarian-regular-location "
+files of urls in librarian-regular--location "
   :init-value nil
   :lighter "librarian-regular"
   ;; :global t
   :keymap librarian-regular-minor-mode-map
-  (setq-local librarian-regular-targets
+  (setq-local librarian-regular--targets
               (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                       when (f-exists? (f-join librarian-regular-location (symbol-name mode)))
+                       when (f-exists? (f-join librarian-regular--location (symbol-name mode)))
                        do
                        (unless (gethash mode librarian-regular--cache)
-                         (puthash mode (librarian-regular--load-file (f-join librarian-regular-location (symbol-name mode)))
+                         (puthash mode (librarian-regular--load-file (f-join librarian-regular--location (symbol-name mode)))
                                   librarian-regular--cache)
                          )
                        append
@@ -52,7 +60,7 @@ files of urls in librarian-regular-location "
     (with-temp-buffer
       (insert-file-contents file)
       (mapc #'(lambda (x)
-                (-when-let (vals (split-string x librarian--regular-splitter t " +"))
+                (-when-let (vals (split-string x librarian-regular--splitter t " +"))
                   (push (cons (car vals) (cadr vals)) targets)
                   ))
             (s-lines (buffer-substring-no-properties (point-min) (point-max)))
@@ -69,13 +77,11 @@ files of urls in librarian-regular-location "
 
 (define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode librarian-regular-minor-mode/turn-on)
 
-;;-- end mode definition
-
 ;;;###autoload
 (defun librarian-regular-go ()
   (interactive)
   (ivy-read "Lookup: "
-            (buffer-local-value 'librarian-regular-targets (current-buffer))
+            (buffer-local-value 'librarian-regular--targets (current-buffer))
             :require-match t :sort t
             :action #'(lambda (x) (browse-url (cdr x)))
             )

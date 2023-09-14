@@ -1,9 +1,8 @@
 ;; -*- mode:emacs-lisp; -*- lexical-bindings: t; -*-
 
-;;
-;;; Dictionary
+(defvar librarian-dictionary-prefer-offline nil)
 
-(defun librarian-dictionary-definition (identifier &optional arg)
+(defun librarian-words--definition (identifier &optional arg)
   "Look up the definition of the word at point (or selection)."
   (interactive
    (list (or (librarian-get 'word)
@@ -18,7 +17,7 @@
          (define-word identifier nil arg))
         ((user-error "No dictionary backend is available"))))
 
-(defun librarian-synonyms (identifier &optional _arg)
+(defun librarian-words--synonyms (identifier &optional _arg)
   "Look up and insert a synonym for the word at point (or selection)."
   (interactive
    (list (librarian-get 'word) ; TODO actually use this
@@ -31,3 +30,5 @@
          (powerthesaurus-lookup-word-dwim))
         ((user-error "No thesaurus backend is available")))
   )
+
+(provide 'librarian-words)

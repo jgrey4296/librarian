@@ -17,3 +17,16 @@ using `counsel-search` or `helm` into the selected browser above
 ## Spelling
 using `wordnut`, `helm-wordnut`, `powerthesaurus`, `synosaurus-wordnet`,
 `osx-dictionary`
+
+## Bibliography Search
+in `bibtex`
+maybe compilation to latex
+metadata retrieval using `calibre`
+
+## Bookmark Search
+
+## Config file lookup
+
+## Man customisation
+
+## Tagging

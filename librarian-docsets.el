@@ -1,15 +1,14 @@
 ;;; tools/lookup/autoload/docsets.el -*- lexical-binding: t; -*-
 
-(defun librarian-dash-docsets-backend-fn (identifier)
-  "look up identifier
+(unless (boundp 'dash-docs-docsets)
+  (defvar dash-docs-docsets nil))
 
-This backend is meant for `librarian-documentation-functions'.
-Docsets can be searched directly via `librarian-in-docsets'."
-  (when (fboundp 'dash-docs-docset-path)
-    (when-let (docsets (cl-remove-if-not #'dash-docs-docset-path (dash-docs-buffer-local-docsets)))
-      (librarian-in-docsets nil identifier docsets)
-      'deferred))
+(defvar librarian-docsets-defaults '(librarian-backend--docsets-dash
+                                     librarian-backend--docsets-online
+                                     )
   )
+
+(defvar librarian-docsets-path nil)
 
 (defun librarian--consult-search (sync cb)
   (lambda (action)
@@ -40,3 +39,5 @@ installed with `dash-docs-install-docset'."
     (message "Searching docsets %s" dash-docs-docsets)
     (counsel-dash query))
 )
+
+(provide 'librarian-docsets)

@@ -22,6 +22,19 @@
 ;;; Code:
 ;;-- end header
 
+(defvar librarian-online--provider-url-alist nil
+  "An alist that maps online resources to either:
+
+  1. A search url (needs on '%s' to substitute with an url encoded query),
+  2. A non-interactive function that returns the search url in #1,
+  3. An interactive command that does its own search for that provider.
+
+Used by `+lookup/online'.")
+
+(defvar librarian-online--open-url #'browse-url "Function to use to open search urls.")
+
+(defvar librarian--last-provider nil)
+
 (defun librarian--online-provider (&optional force-p namespace)
   (let ((key (or namespace major-mode)))
     (or (and (not force-p)
@@ -29,32 +42,25 @@
         (when-let (provider
                    (completing-read
                     "Search on: "
-                    (mapcar #'car librarian-provider-url-alist)
+                    (mapcar #'car librarian-online--provider-url-alist)
                     nil t))
           (setf (alist-get key librarian--last-provider) provider)
           provider))))
 
-(defun librarian-online-backend-fn (identifier)
-  "Open the browser and search for IDENTIFIER online.
-When called for the first time, or with a non-nil prefix argument, prompt for
-the search engine to use."
-  (librarian-online identifier
-   (librarian--online-provider (not current-prefix-arg))))
-
 (defun librarian-online (query provider)
   "Look up QUERY in the browser using PROVIDER.
 When called interactively, prompt for a query and, when called for the first
-time, the provider from `librarian-provider-url-alist'. In subsequent calls, reuse
+time, the provider from `librarian-online--provider-url-alist'. In subsequent calls, reuse
 the previous provider. With a non-nil prefix argument, always prompt for the
 provider.
 
 QUERY must be a string, and PROVIDER must be a key of
-`librarian-provider-url-alist'."
+`librarian-online--provider-url-alist'."
   (interactive
    (list (if (use-region-p) (librarian-get))
          (librarian--online-provider current-prefix-arg)))
 
-  (let ((backends (cdr (assoc provider librarian-provider-url-alist))))
+  (let ((backends (cdr (assoc provider librarian-online--provider-url-alist))))
     (unless backends
       (user-error "No available online lookup backend for %S provider"
                   provider))
@@ -62,7 +68,7 @@ QUERY must be a string, and PROVIDER must be a key of
       (dolist (backend backends)
         (cl-check-type backend (or string function))
         (cond ((stringp backend)
-               (funcall librarian-open-url-fn
+               (funcall librarian-online--open-url
                         (format backend
                                 (url-encode-url
                                  (or query
@@ -77,7 +83,7 @@ QUERY must be a string, and PROVIDER must be a key of
                (throw 'done t)))))))
 
 (defun librarian-online-select ()
-  "Run `librarian/online', but always prompt for the provider to use."
+  "Run `librarian-online', but always prompt for the provider to use."
   (interactive)
   (let ((current-prefix-arg t))
     (call-interactively #'librarian-online)))

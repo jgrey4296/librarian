@@ -1,6 +1,53 @@
 ;; -*- mode:emacs-lisp; -*- lexical-bindings: t; -*-
 ;;
 
+(defvar librarian-valid-keywords '(
+                                    :definition
+                                    :declaration
+                                    :implementations
+                                    :type-definition
+                                    :references
+                                    :documentation
+                                    :assignments
+                                    )
+  "Valid Types of Lookup commands that can be registered")
+
+(defvar librarian-definition-defaults
+  '(librarian-backend--words-dictionary
+    librarian-backend--xref-definitions
+    librarian-backend--dumb-jump
+    librarian-backend--project-search
+    librarian-backend--evil-goto-def
+    )
+  )
+
+(defvar librarian-references-defaults '(librarian-backend--words-thesaurus
+                                        librarian-backend--xref-references
+                                        librarian-backend--project-search
+                                        )
+  )
+
+(defvar librarian-declaration-defaults nil)
+
+(defvar librarian-implementations-defaults ())
+
+(defvar librarian-type-definition-defaults ())
+
+(defun librarian-documentation-declare-type (type)
+  "TODO"
+  )
+
+;; TODO put this in a macro maybe
+(setq-default librarian-definition-functions      nil
+              librarian-declaration-functions     nil
+              librarian-implementations-functions nil
+              librarian-type-definition-functions nil
+              librarian-references-functions      nil
+              librarian-documentation-functions   nil
+              librarian-file-functions            nil
+              librarian-assignments-functions     nil
+              )
+
 (defun librarian-definition (identifier &optional arg)
   "Jump to the definition of IDENTIFIER (defaults to the symbol at point).
 

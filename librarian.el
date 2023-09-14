@@ -36,11 +36,26 @@
 (require 'eldoc)
 (require 'f)
 (require 's)
+(require 'helpful)
+(require 'free-keys)
+(require 'xref)
+(require 'bibtex)
+(require 'bibtex-completion)
+(require 'wordnut)
+(require 'osx-dictionary)
+(require 'synosaurus)
+(require 'helm-wordnet)
+(require 'define-word)
 
 (define-minor-mode librarian-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :global t
   :lighter (:eval (format "Browser: %s" librarian-default-browser))
+  :keymap (make-sparse-keymap)
+  (setq xref-show-definitions-function #'ivy-xref-show-defs
+        xref-show-xrefs-function       #'ivy-xref-show-xrefs
+        browse-url-browser-function #'librarian-url
+        )
 )
 
 (defun librarian-debug ()
@@ -73,7 +88,7 @@ registered url handlers
   )
 
 (defun librarian-url (&optional url)
-  " use librarian to open a url "
+  " use librarian to open a url, in place of `browse-url`' "
   (interactive)
   (let ((url (cond (url url)
                    ((and (boundp 'evil-state) (eq evil-state 'visual))
@@ -90,7 +105,6 @@ registered url handlers
           )
     )
   )
-
 
 (defalias 'librarian-docset-install #'counsel-dash-install-docset)
 
