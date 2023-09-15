@@ -4,6 +4,7 @@
 (defvar librarian-man--cmd (executable-find "man"))
 (defvar librarian-man--path nil)
 (defvar librarian-man--config nil)
+(defvar librarian-man--cache-dir nil)
 
 
 (defun librarian-man--call ()
@@ -12,11 +13,11 @@
         (manual-program librarian-man--cmd)
         result
         )
-    (unless (f-exists? (f-join librarian-man--path "man-completions"))
+    (unless (f-exists? (f-join librarian-man--cache-dir "man-completions"))
       (message "Building Man Completion List")
-      (call-process "man" nil (list :file (f-join librarian-man--path "man-completions")) nil "-k" "."))
+      (call-process "man" nil (list :file (f-join librarian-man--cache-dir "man-completions")) nil "-k" "."))
     (with-temp-buffer
-      (insert-file-contents (f-join librarian-man--path "man-completions"))
+      (insert-file-contents (f-join librarian-man--cache-dir "man-completions"))
       (setq result (ivy-read "Man Page: " (s-split "\n" (buffer-string) t)))
       )
     (man (car (s-split "\\( \\|,\\)" result)))
