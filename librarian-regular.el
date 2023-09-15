@@ -23,6 +23,9 @@
 
 ;;-- end header
 
+(eval-when-compile
+  (require 'dash))
+
 (defconst librarian-regular--splitter "#")
 
 (defvar librarian-regular--cache (make-hash-table))

@@ -2,7 +2,7 @@
 
 (require 'synosaurus)
 (require 'wordnut)
-(require 'define-word)
+;; (require 'define-word)
 (require 'osx-dictionary)
 (require 'helm-wordnet)
 

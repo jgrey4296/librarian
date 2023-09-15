@@ -38,6 +38,16 @@
 (require 'browse-url)
 
 (require 'librarian-utils)
+(require 'librarian-backends)
+(require 'librarian-words)
+(require 'librarian-browser)
+(require 'librarian-configs)
+(require 'librarian-docsets)
+(require 'librarian-documentation)
+(require 'librarian-man)
+(require 'librarian-online)
+(require 'librarian-regular)
+;; (require 'librarian-tagging)
 
 (define-minor-mode librarian-mode
   "An interface for controlling lookups, spelling, documentation, online search"
@@ -47,25 +57,16 @@
   (message "Librarian: %s" librarian-mode)
   (if librarian-mode
       (progn ;; activating
-        (evil-make-intercept-map librarian-mode-map)
-        (require 'librarian-backend)
-        (require 'librarian-words)
-        (require 'librarian-browser)
-        (require 'librarian-configs)
-        (require 'librarian-docsets)
-        (require 'librarian-documentation)
-        (require 'librarian-man)
-        (require 'librarian-online)
-        (require 'librarian-regular)
+        (evil-make-intercept-map librarian-mode-map 'normal)
         (global-librarian-regular-minor-mode 1)
+        (global-librarian-tagging-mode 1)
         (librarian-browser-load-variants)
         (unless (not (and (boundp 'librarian-configs--modules-cache) librarian-configs--modules-cache))
           (librarian-configs--build-modules-cache))
         
-        ;; (require 'librarian-tagging)
         (setq xref-show-definitions-function #'ivy-xref-show-defs
               xref-show-xrefs-function       #'ivy-xref-show-xrefs
-              browse-url-browser-function    #'browse-url-default-browser ;;#'librarian-browser--open-url
+              browse-url-browser-function    #'librarian-browser--open-url
               browse-url-handlers nil
               browse-url-default-handlers '(
                                             ("." . librarian-browser--open-url)
@@ -74,20 +75,19 @@
         )
     (progn ;; deactivating
       (global-librarian-regular-minor-mode -1)
+      (global-librarian-tagging-mode -1)
       (setq browse-url-browser-function #'browse-url-default-browser)
       )
     )
-)
+  )
 
 (defun librarian-debug ()
-  "
-Check librarian settings:
-documentation function assignments,
-assigned browser,
-installed docsets
-registered url handlers
-
-"
+  " Check librarian settings:
+   documentation function assignments,
+   assigned browser,
+   installed docsets
+   registered url handlers
+   "
   (interactive)
   (let ((handlers (list
                    (cons :assignments     librarian-assignments-functions)
@@ -100,15 +100,16 @@ registered url handlers
                    (cons :type-definition librarian-type-definition-functions)
                    ))
         )
-    (message "Lookup Handlers Are:\n%s"
-             (string-join (mapcar #'(lambda (x)
-                                      (format "%-25s : %s" (car x) (cdr x)))
-                                  handlers) "\n")
+    (message (format "Lookup Handlers Are:\n%s"
+                     (string-join (mapcar #'(lambda (x)
+                                              (format "%-25s : %s" (car x) (cdr x)))
+                                          handlers) "\n")
+                     )
              )
     )
   )
 
-(defun librarian-url (&optional url)
+(defun librarian-url (&optional url &rest args)
   " use librarian to open a url, in place of `browse-url`' "
   (interactive)
   (let ((url (cond (url url)

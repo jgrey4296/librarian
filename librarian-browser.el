@@ -4,7 +4,7 @@
 
 (defconst librarian-browser-buffer-name "*librarian browser*")
 
-(defvar librarian-default-browser "firefox")
+(defvar librarian-default-browser "eww")
 
 (defvar librarian-browser-use-preview t)
 

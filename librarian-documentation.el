@@ -98,6 +98,7 @@ search otherwise."
         ((librarian--jump-to :references identifier nil arg))
         ((user-error "Couldn't find references of %S" (substring-no-properties identifier)))))
 
+;;;###autoload
 (defun librarian-documentation (identifier &optional arg)
   "Show documentation for IDENTIFIER (defaults to symbol at point or selection.
 

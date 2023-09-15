@@ -59,6 +59,7 @@ force it back to the terminal
     )
   )
 
+;;;###autoload
 (defun librarian-describe-class()
   " use cl-describe-struct  "
   (interactive)
@@ -122,6 +123,7 @@ Otherwise, falls back on `find-file-at-point'."
         ((user-error "Couldn't find any files here")))
   )
 
+;;;###autoload
 (defun librarian-buffer-locals ()
   (interactive)
   (let ((vars (buffer-local-variables))
@@ -144,6 +146,7 @@ Otherwise, falls back on `find-file-at-point'."
     )
   )
 
+;;;###autoload
 (defun librarian-system-config ()
   (interactive)
   (with-temp-buffer-window "*Emacs Build Configuration*" 'display-buffer-pop-up-window nil
@@ -156,24 +159,6 @@ Otherwise, falls back on `find-file-at-point'."
              )
     )
   )
-
-(evil-define-command evil-librarian-online (query &optional bang)
-  "Look up QUERY online. Will prompt for search engine the first time, then
-reuse it on consecutive uses of this command. If BANG, always prompt for search
-engine."
-  (interactive "<a><!>")
-  (librarian-online query (librarian--online-provider bang 'evil-ex)))
-
-(evil-define-command evil-librarian-dash (query &optional bang)
-  "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
-install it if necessary)."
-  (interactive "<a><!>")
-  (let (selected)
-    (when bang
-      (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
-      (unless (dash-docs-docset-path selected)
-        (librarian-install-docset selected)))
-    (librarian-in-docsets query selected)))
 
 (defun librarian--fix-ivy-xrefs (fn fetcher alist)
   "HACK Fix #4386: `ivy-xref-show-xrefs' calls `fetcher' twice, which has

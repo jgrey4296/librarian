@@ -158,9 +158,7 @@ the browser."
             (bug-reference-fontify (line-beginning-position) (line-end-position)))))))
 
 (defun librarian-backend--docsets-dash (identifier)
-  "look up identifier
-
-This backend is meant for `librarian-documentation-functions'.
+  " This backend is meant for `librarian-documentation-functions'.
 Docsets can be searched directly via `librarian-in-docsets'."
   (when (fboundp 'dash-docs-docset-path)
     (when-let (docsets (cl-remove-if-not #'dash-docs-docset-path (dash-docs-buffer-local-docsets)))

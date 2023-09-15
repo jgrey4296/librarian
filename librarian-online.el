@@ -22,6 +22,8 @@
 ;;; Code:
 ;;-- end header
 
+(require 'evil-common)
+
 (defvar librarian-online--provider-url-alist nil
   "An alist that maps online resources to either:
 
@@ -47,6 +49,7 @@ Used by `librarian-online'.")
           (setf (alist-get key librarian--last-provider) provider)
           provider))))
 
+;;;###autoload
 (defun librarian-online (query provider)
   "Look up QUERY in the browser using PROVIDER.
 When called interactively, prompt for a query and, when called for the first
@@ -87,6 +90,24 @@ QUERY must be a string, and PROVIDER must be a key of
   (interactive)
   (let ((current-prefix-arg t))
     (call-interactively #'librarian-online)))
+
+(evil-define-command evil-librarian-online (query &optional bang)
+  "Look up QUERY online. Will prompt for search engine the first time, then
+reuse it on consecutive uses of this command. If BANG, always prompt for search
+engine."
+  (interactive "<a><!>")
+  (librarian-online query (librarian--online-provider bang 'evil-ex)))
+
+(evil-define-command evil-librarian-dash (query &optional bang)
+  "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
+install it if necessary)."
+  (interactive "<a><!>")
+  (let (selected)
+    (when bang
+      (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
+      (unless (dash-docs-docset-path selected)
+        (librarian-install-docset selected)))
+    (librarian-in-docsets query selected)))
 
 (provide 'librarian-online)
 ;;; lookup-search.el ends here
