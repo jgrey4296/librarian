@@ -27,6 +27,7 @@
 (require 'cl-lib)
 (require 's)
 (require 'dash)
+(require 'evil)
 
 (require 'better-jumper)
 (require 'browse-url)
@@ -47,23 +48,36 @@
 (require 'librarian-man)
 (require 'librarian-online)
 (require 'librarian-regular)
-;; (require 'librarian-tagging)
+(require 'librarian-tagging)
+
+(defvar librarian-mode-map (make-sparse-keymap))
+(evil-make-intercept-map librarian-mode-map 'normal)
 
 (define-minor-mode librarian-mode
   "An interface for controlling lookups, spelling, documentation, online search"
-  :global t
   :lighter (:eval (format "Browser: %s" librarian-default-browser))
-  :keymap (make-sparse-keymap)
-  (message "Librarian: %s" librarian-mode)
-  (if librarian-mode
+  :keymap librarian-mode-map
+  )
+
+(defun librarian-mode/turn-on ()
+  (unless (and (or (minibufferp)
+                   (derived-mode-p 'magit-mode))
+               (derived-mode-p 'text-mode 'prog-mode)
+               )
+    (librarian-mode 1)
+    )
+  )
+
+(define-globalized-minor-mode global-librarian-mode librarian-mode librarian-mode/turn-on
+  (message "Librarian: %s" global-librarian-mode)
+  (if global-librarian-mode
       (progn ;; activating
-        (evil-make-intercept-map librarian-mode-map 'normal)
         (global-librarian-regular-minor-mode 1)
         (global-librarian-tagging-mode 1)
         (librarian-browser-load-variants)
         (unless (not (and (boundp 'librarian-configs--modules-cache) librarian-configs--modules-cache))
           (librarian-configs--build-modules-cache))
-        
+
         (setq xref-show-definitions-function #'ivy-xref-show-defs
               xref-show-xrefs-function       #'ivy-xref-show-xrefs
               browse-url-browser-function    #'librarian-browser--open-url
