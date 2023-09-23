@@ -66,7 +66,7 @@ naming the directory based on the first line of text and insert the car "
     ;; (message "Getting Tags for all buffers to depth: %s" depth)
     (mapcar (lambda (x) (cl-incf (gethash (car x) count-hash 0) (string-to-number (cadr x)))) pairs)
     (if (not (hash-table-empty-p count-hash))
-        (librarian-tagging-chart-chart-tag-counts count-hash (buffer-name))
+        (librarian-tagging-chart-tag-counts count-hash (buffer-name))
       (message "No Tags in buffer")))
   )
 
@@ -116,7 +116,7 @@ and sorts groups alphabetically"
       )
     )
   )
-(defun librarian-tagging-chart-chart-tag-counts (counthash name)
+(defun librarian-tagging-chart-tag-counts (counthash name)
   "Given a hashtable of counts, create a buffer with a bar chart of the counts"
   ;; (message "Charting: %s %s" counthash name)
   (let* ((hashPairs    (-zip-pair (hash-table-keys counthash) (hash-table-values counthash)))
@@ -147,7 +147,7 @@ and sorts groups alphabetically"
     (maphash (lambda (k v) (cl-incf (gethash k alltags 0) v)) (librarian-tagging-mode-get-buffer-tags))
     (if (hash-table-empty-p alltags)
         (message "No Tags in buffer")
-      (librarian-tagging-chart-chart-tag-counts alltags (buffer-name))
+      (librarian-tagging-chart-tag-counts alltags (buffer-name))
       )
     )
   )
@@ -168,7 +168,7 @@ and sorts groups alphabetically"
              )
     (if (hash-table-empty-p alltags)
         (message "No Tags in buffers")
-      (librarian-tagging-chart-chart-tag-counts alltags "Active Files"))
+      (librarian-tagging-chart-tag-counts alltags "Active Files"))
     )
   )
 
