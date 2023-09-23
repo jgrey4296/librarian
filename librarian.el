@@ -50,6 +50,8 @@
 (require 'librarian-regular)
 (require 'librarian-tagging)
 
+(defconst librarian-active-on-modes (list 'text-mode 'prog-mode))
+(defconst librarian-forbid-modes (list 'magit-mode))
 (defvar librarian-mode-map (make-sparse-keymap))
 (evil-make-intercept-map librarian-mode-map 'normal)
 
@@ -60,10 +62,9 @@
   )
 
 (defun librarian-mode/turn-on ()
-  (unless (and (or (minibufferp)
-                   (derived-mode-p 'magit-mode))
-               (derived-mode-p 'text-mode 'prog-mode)
-               )
+  (when (and (not (or (minibufferp)
+                      (apply #'derived-mode-p librarian-forbid-modes)))
+             (apply #'derived-mode-p librarian-active-on-modes))
     (librarian-mode 1)
     )
   )
