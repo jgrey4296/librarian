@@ -3,7 +3,7 @@
 (require 'synosaurus)
 (require 'wordnut)
 ;; (require 'define-word)
-(require 'osx-dictionary)
+(when (eq system-type 'darwin) (require 'osx-dictionary))
 (require 'helm-wordnet)
 
 (defvar librarian-dictionary-prefer-offline nil)
