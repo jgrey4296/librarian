@@ -136,7 +136,7 @@
       (let ((tagline (split-string (buffer-substring (line-beginning-position) (line-end-position))
                                    ":" nil " +")))
         (unless (or (> (length tagline) 2) (string-empty-p (car tagline)))
-          (puthash (car tagline) (string-to-number (cadr tagline))
+          (puthash (car tagline) (string-to-number (or (cadr tagline) "1"))
                    librarian-tagging-mode-global-tags)))
       (forward-line)
       )
