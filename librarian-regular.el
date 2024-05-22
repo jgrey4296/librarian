@@ -81,7 +81,7 @@ files of urls in librarian-regular--location "
 (defun librarian-regular-go ()
   (interactive)
   (ivy-read "Lookup: "
-            (buffer-local-value 'librarian-regular--targets (current-buffer))
+            librarian-regular--targets
             :require-match t :sort t
             :action #'(lambda (x) (browse-url (cdr x)))
             )

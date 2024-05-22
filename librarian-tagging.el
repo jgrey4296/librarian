@@ -103,27 +103,27 @@
 (defun librarian-tagging-mode-set-tags (x)
   "Utility action to set tags. Works in org *and* bibtex files"
   (save-excursion
-    (funcall (plist-get (buffer-local-value 'librarian-tagging-mode-handlers (current-buffer)) :set) x)
+    (funcall (plist-get librarian-tagging-mode-handlers :set x))
     )
   )
 
 (defun librarian-tagging-mode-set-new-tag (x)
   "Utility action to add a new tag. Works for org *and* bibtex"
     (save-excursion
-      (funcall (plist-get (buffer-local-value 'librarian-tagging-mode-handlers (current-buffer)) :new) x)
+      (funcall (plist-get librarian-tagging-mode-handlers :new) x)
     )
   )
 
 (defun librarian-tagging-mode-get-tags ()
   "Utility action to get tags for current entry"
      (save-excursion
-       (funcall (plist-get (buffer-local-value 'librarian-tagging-mode-handlers (current-buffer)) :get))
+       (funcall (plist-get librarian-tagging-mode-handlers :get))
        )
    )
 
 (defun librarian-tagging-mode-get-buffer-tags ()
      (save-excursion
-       (funcall (plist-get (buffer-local-value 'librarian-tagging-mode-handlers (current-buffer)) :buff))
+       (funcall (plist-get librarian-tagging-mode-handlers :buff))
        )
    )
 
