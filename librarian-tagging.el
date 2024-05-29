@@ -103,7 +103,7 @@
 (defun librarian-tagging-mode-set-tags (x)
   "Utility action to set tags. Works in org *and* bibtex files"
   (save-excursion
-    (funcall (plist-get librarian-tagging-mode-handlers :set x))
+    (funcall (plist-get librarian-tagging-mode-handlers :set) x)
     )
   )
 
