@@ -119,17 +119,17 @@
 
 ;;-- defaults
 
-(cl-defmethod librarian-set-tags (_ add sub keep)
-  (warn "No Librarian Set Tags handler defined"))
+(cl-defmethod librarian-set-tags (mode add sub keep)
+  (warn "No Librarian Set Tags handler defined for: %s" mode))
 
-(cl-defmethod librarian-set-new-tags (_ new)
-  (warn "No Librarian-set-new-tag handler defined"))
+(cl-defmethod librarian-set-new-tags (mode new)
+  (warn "No Librarian-set-new-tag handler defined for: %s" mode))
 
 (cl-defmethod librarian-get-tags (_)
   nil)
 
-(cl-defmethod librarian-get-buffer-tags (_)
-  (warn "No Librarian-get-buffer-tags handler defined"))
+(cl-defmethod librarian-get-buffer-tags (mode)
+  (warn "No Librarian-get-buffer-tags handler defined for: %s" mode))
 
 (cl-defmethod librarian-normalize-tags (_ tags)
   "default implementation of tag normalization.
