@@ -1,0 +1,21 @@
+#+TITLE: Librarian Todos
+
+* Librarian
+:PROPERTIES:
+:ID:       8390af85-0c2d-4f73-b06c-65e06854c0e2
+:END:
+** refactor env-handling into librarian
+*** add readme
+*** add tests
+*** shift config to ide, not python
+*** generalize to handle java, erlang, etc
+*** read toml
+*** read pipfiles
+*** add structs
+
+** refactor spec-handling into librarian
+*** document
+*** add structs
+*** test
+*** pass symbols to spec-handling-add!
+then eval them on application
