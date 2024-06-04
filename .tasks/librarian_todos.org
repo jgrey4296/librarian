@@ -1,10 +1,11 @@
 #+TITLE: Librarian Todos
+#+STARTUP: agenda
 
 * Librarian
 :PROPERTIES:
 :ID:       8390af85-0c2d-4f73-b06c-65e06854c0e2
 :END:
-** refactor env-handling into librarian
+** [∅] refactor env-handling into librarian
 *** add readme
 *** add tests
 *** shift config to ide, not python
@@ -13,9 +14,111 @@
 *** read pipfiles
 *** add structs
 
-** refactor spec-handling into librarian
+** [∅] refactor spec-handling into librarian
 *** document
 *** add structs
 *** test
 *** pass symbols to spec-handling-add!
 then eval them on application
+
+** [∅] use xref and ivy-xref
+https://blog.kotatsu.dev/posts/2023-10-28-emacs-ctags/
+https://www.ackerleytng.com/posts/emacs-xref/
+https://andreyor.st/posts/2023-09-09-migrating-from-lsp-mode-to-eglot/
+https://www.gnu.org/software/emacs/manual/html_node/emacs/Xref.html
+
+#+begin_src emacs-lisp :tangle yes
+
+(cl-defgeneric xref-location-marker (location)
+  "Return the marker for LOCATION.")
+
+(cl-defgeneric xref-location-group (location)
+  "Return a string used to group a set of locations.
+This is typically a file name, but can also be a package name, or
+some other label.
+
+When it is a file name, it should be the \"expanded\" version.")
+
+(cl-defgeneric xref-location-line (_location)
+  "Return the line number corresponding to the location."
+  nil)
+
+(cl-defgeneric xref-match-length (_item)
+  "Return the length of the match."
+  nil)
+
+#+end_src
+
+#+begin_src emacs-lisp :tangle yes
+(cl-defgeneric xref-backend-definitions (backend identifier)
+  "Find definitions of IDENTIFIER.
+
+The result must be a list of xref objects.  If IDENTIFIER
+contains sufficient information to determine a unique definition,
+return only that definition.  If there are multiple possible
+definitions, return all of them.  If no definitions can be found,
+return nil.
+
+IDENTIFIER can be any string returned by
+`xref-backend-identifier-at-point', or from the table returned by
+`xref-backend-identifier-completion-table'.
+
+To create an xref object, call `xref-make'.")
+
+(cl-defgeneric xref-backend-references (_backend identifier)
+  "Find references of IDENTIFIER.
+The result must be a list of xref objects.  If no references can
+be found, return nil.
+
+The default implementation uses `semantic-symref-tool-alist' to
+find a search tool; by default, this uses \"find | grep\" in the
+current project's main and external roots."
+  (mapcan
+   (lambda (dir)
+     (message "Searching %s..." dir)
+     (redisplay)
+     (prog1
+         (xref-references-in-directory identifier dir)
+       (message "Searching %s... done" dir)))
+   (let ((pr (project-current t)))
+     (project-combine-directories
+      (cons
+       (xref--project-root pr)
+       (project-external-roots pr))))))
+
+(cl-defgeneric xref-backend-apropos (backend pattern)
+  "Find all symbols that match PATTERN string.
+The second argument has the same meaning as in `apropos'.
+
+If BACKEND is implemented in Lisp, it can use
+`xref-apropos-regexp' to convert the pattern to regexp.")
+
+(cl-defgeneric xref-backend-identifier-at-point (_backend)
+  "Return the relevant identifier at point.
+
+The return value must be a string, or nil meaning no identifier
+at point found.
+
+If it's hard to determine the identifier precisely (e.g., because
+it's a method call on unknown type), the implementation can
+return a simple string (such as symbol at point) marked with a
+special text property which e.g. `xref-backend-definitions' would
+recognize and then delegate the work to an external process."
+  (let ((thing (thing-at-point 'symbol)))
+    (and thing (substring-no-properties thing))))
+
+(cl-defgeneric xref-backend-identifier-completion-table (backend)
+  "Return the completion table for identifiers.")
+
+(cl-defgeneric xref-backend-identifier-completion-ignore-case (_backend)
+  "Return t if case is not significant in identifier completion."
+  completion-ignore-case)
+
+#+end_src
+
+** [∅] structs
+** [∅] add session saving
+** [∅] document
+** [∅] bookmark search
+** [∅] docs
+* Tests
