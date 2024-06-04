@@ -5,6 +5,11 @@
 :PROPERTIES:
 :ID:       8390af85-0c2d-4f73-b06c-65e06854c0e2
 :END:
+** [∅] add session saving
+** [∅] bookmark search
+** [∅] desktop/session handling
+
+** [∅] documentation
 ** [∅] refactor env-handling into librarian
 *** add readme
 *** add tests
@@ -21,6 +26,7 @@
 *** pass symbols to spec-handling-add!
 then eval them on application
 
+** [∅] structs
 ** [∅] use xref and ivy-xref
 https://blog.kotatsu.dev/posts/2023-10-28-emacs-ctags/
 https://www.ackerleytng.com/posts/emacs-xref/
@@ -116,9 +122,4 @@ recognize and then delegate the work to an external process."
 
 #+end_src
 
-** [∅] structs
-** [∅] add session saving
-** [∅] document
-** [∅] bookmark search
-** [∅] docs
 * Tests
