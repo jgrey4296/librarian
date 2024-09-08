@@ -87,5 +87,10 @@ files of urls in librarian-regular--location "
             )
 )
 
+(defun librarian-regular-clear ()
+  (interactive)
+  (clrhash librarian-regular--cache)
+  )
+
 (provide 'librarian-regular)
 ;;; librarian-regular.el ends here
