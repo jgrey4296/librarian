@@ -24,7 +24,11 @@
 ;;-- end header
 
 (eval-when-compile
-  (require 'dash))
+  (require 'dash)
+  (require 's)
+  (require 'cl-lib)
+  (require 'f)
+  )
 
 (defconst librarian-regular--splitter "#")
 
@@ -42,16 +46,22 @@ files of urls in librarian-regular--location "
   ;; :global t
   :keymap nil
   (setq-local librarian-regular--targets
-              (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                       when (f-exists? (f-join librarian-regular--location (symbol-name mode)))
-                       do
-                       (unless (gethash mode librarian-regular--cache)
-                         (puthash mode (librarian-regular--load-file (f-join librarian-regular--location (symbol-name mode)))
-                                  librarian-regular--cache)
-                         )
-                       append
-                       (gethash mode librarian-regular--cache)
-                       )
+              ;; Loop for each active mode
+              (cl-remove-duplicates
+               (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
+                        ;; that has a regular urls file
+                        when (f-exists? (f-join librarian-regular--location (symbol-name mode)))
+                        do
+                        (unless (gethash mode librarian-regular--cache)
+                          ;; put the file contents in as necessary
+                          (puthash mode (librarian-regular--load-file (f-join librarian-regular--location (symbol-name mode)))
+                                   librarian-regular--cache)
+                          )
+                        ;; and append the total for this buffer
+                        append
+                        (gethash mode librarian-regular--cache)
+                        )
+               )
               )
   )
 

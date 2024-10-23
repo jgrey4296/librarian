@@ -10,7 +10,7 @@
 ;; Version: 0.0.1
 ;; Keywords:
 ;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.3") (dash) (s) (cl-lib) (f) (evil) (better-jumper) (browse-url) (counsel) (counsel-dash) (free-keys) (xref) (browse-url) (helpful))
 ;; Package written on: ((emacs 28.2))
 ;;
 ;; This file is not part of GNU Emacs.
