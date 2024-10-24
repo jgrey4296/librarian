@@ -1,7 +1,5 @@
 ;;; browse.el -*- lexical-binding: t; -*-
 
-(require 'eww)
-
 (defconst librarian-browser-buffer-name "*librarian browser*")
 
 (defvar librarian-default-browser "eww")

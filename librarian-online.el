@@ -22,8 +22,6 @@
 ;;; Code:
 ;;-- end header
 
-(require 'evil-common)
-
 (defvar librarian-online--provider-url-alist nil
   "An alist that maps online resources to either:
 

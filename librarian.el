@@ -10,7 +10,7 @@
 ;; Version: 0.0.1
 ;; Keywords:
 ;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3") (dash) (s) (cl-lib) (f) (evil) (better-jumper) (browse-url) (counsel) (counsel-dash) (free-keys) (xref) (browse-url) (helpful))
+;; Package-Requires: ((emacs "24.3") (dash) (s) (cl-lib) (f) (evil) (better-jumper) (browse-url) (counsel) (counsel-dash) (free-keys) (xref) (browse-url) (helpful) (thingatpt) (eldoc) (ivy) (counsel) (synosaurus) (wordnut) (helm-wordnet))
 ;; Package written on: ((emacs 28.2))
 ;;
 ;; This file is not part of GNU Emacs.
@@ -27,7 +27,19 @@
 (require 'cl-lib)
 (require 's)
 (require 'dash)
-(require 'evil)
+(require 'evil-core)
+(require 'evil-common)
+(require 'thingatpt)
+(require 'eldoc)
+(require 'ivy)
+(require 'counsel)
+(require 'eww)
+
+(require 'synosaurus)
+(require 'wordnut)
+;; (require 'define-word)
+(when (eq system-type 'darwin) (require 'osx-dictionary))
+(require 'helm-wordnet)
 
 (require 'better-jumper)
 (require 'browse-url)
@@ -51,7 +63,9 @@
 (require 'librarian-tagging)
 
 (defconst librarian-active-on-modes (list 'text-mode 'prog-mode))
+
 (defconst librarian-forbid-modes (list 'magit-mode))
+
 (defvar librarian-mode-map (make-sparse-keymap))
 (evil-make-intercept-map librarian-mode-map 'normal)
 
