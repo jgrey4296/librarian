@@ -61,7 +61,7 @@ files of urls in librarian-regular--location "
                         append
                         (gethash mode librarian-regular--cache)
                         )
-               )
+               :test #'equal)
               )
   )
 
