@@ -62,7 +62,7 @@
 (require 'librarian-regular)
 (require 'librarian-tagging)
 
-(defconst librarian-active-on-modes (list 'text-mode 'prog-mode))
+(defconst librarian-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 
 (defconst librarian-forbid-modes (list 'magit-mode))
 
