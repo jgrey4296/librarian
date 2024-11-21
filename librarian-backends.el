@@ -35,6 +35,9 @@
   (defvar ivy-initial-inputs-alist nil))
 
 (defvar librarian-online--amazon-url "")
+(defvar librarian--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
+(defvar librarian--bibtex-scholar-search-fields-exact '("title"))
+
 
 (defun librarian-backend--browser-amazon (url &rest args)
   ;; TODO Handle US and UK
@@ -205,8 +208,8 @@ the search engine to use."
   "Open the bibtex entry at point in google-scholar by its doi.
 With arg, searchs the dplp instead.
 "
-  (let* ((search-texts (mapcar #'bibtex-autokey-get-field jg-bibtex-scholar-search-fields))
-         (exact-texts  (mapcar #'bibtex-autokey-get-field jg-bibtex-scholar-search-fields-exact))
+  (let* ((search-texts (mapcar #'bibtex-autokey-get-field librarian--bibtex-scholar-search-fields))
+         (exact-texts  (mapcar #'bibtex-autokey-get-field librarian--bibtex-scholar-search-fields-exact))
          (exact-string (s-join " " (mapcar #'(lambda (x) (format "\"%s\"" x))
                                            (-filter #'(lambda (x) (not (string-empty-p x))) exact-texts))))
          (all-terms (s-concat exact-string " " (s-join " " search-texts)))

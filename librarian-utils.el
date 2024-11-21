@@ -1,5 +1,12 @@
 ;;; tools/lookup/autoload/xwidget.el -*- lexical-binding: t; -*-
 
+(defvar librarian--local-var-skip-regexp (rx (or "-map"
+                                                 "keymap"
+                                                 "display-table"
+                                                 "imenu-generic-expression"
+                                                 "font-lock-keywords"))
+  )
+
 (defvar librarian--xwidget-webkit-last-session-buffer nil)
 
 (defvar librarian-refocus-target  "iTerm")
@@ -135,7 +142,7 @@ Otherwise, falls back on `find-file-at-point'."
                         (emacs-lisp-mode))
           val)
       (cl-loop for x in vars do
-               (if (or (string-match jg-help-local-var-skip-regexp
+               (if (or (string-match librarian--local-var-skip-regexp
                                      (symbol-name (car x)))
                         (< 40 (length (format "%s" (cdr x)))))
                    (princ (format "(%s : Skipped)" (car x)))
