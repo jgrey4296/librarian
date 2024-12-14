@@ -35,9 +35,10 @@
   (defvar ivy-initial-inputs-alist nil))
 
 (defvar librarian-online--amazon-url "")
-(defvar librarian--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
-(defvar librarian--bibtex-scholar-search-fields-exact '("title"))
 
+(defvar librarian--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
+
+(defvar librarian--bibtex-scholar-search-fields-exact '("title"))
 
 (defun librarian-backend--browser-amazon (url &rest args)
   ;; TODO Handle US and UK
@@ -218,7 +219,6 @@ With arg, searchs the dplp instead.
     (+lookup/online cleaned "Scholar")
     )
   )
-
 
 (provide 'librarian-backends)
 ;;; librarian-handlers.el ends here
