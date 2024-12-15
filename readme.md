@@ -45,3 +45,18 @@ metadata retrieval using `calibre`
 ## Man customisation
 
 ## Tagging
+
+## Envs
+
+### marker file formats
+Looks for one of `librarian-envs-handling--markers`, typically `.lenvs`.
+Format is:
+```
+# comments
+# single lines
+# {handler} arg arg arg
+# eg:
+mamba doot-dev312
+lsp   
+
+```
