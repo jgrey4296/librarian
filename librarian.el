@@ -61,7 +61,7 @@
 (require 'librarian-online)
 (require 'librarian-regular)
 (require 'librarian-tagging)
-(require 'librarian-envs)
+;; (require 'librarian-envs)
 
 (defconst librarian-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 

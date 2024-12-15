@@ -54,13 +54,13 @@ how to describe itself in the modeline
 
 (cl-defstruct (librarian-envs-state)
   "The current envs state for a handler"
-  (id             :type 'symbol)
-  (type           :type 'symbol)
-  (status         :type 'symbol :documentation '(nil setup active))
-  (handler        :type 'librarian-envs-handler)
-  (loc     nil    :type 'librarian-envs-loc)
-  (locked  nil    :type 'bool)
-  (data    nil    :type 'list :documentation "a list for arbitrary data handlers can put")
+  (id      nil   :type 'symbol)
+  (type    nil   :type 'symbol)
+  (status  nil   :type 'symbol :documentation "nil|setup|active")
+  (handler nil   :type 'librarian-envs-handler)
+  (loc     nil   :type 'librarian-envs-loc)
+  (locked  nil   :type 'bool)
+  (data    nil   :type 'list :documentation "a list for arbitrary data handlers can put")
   )
 
 (cl-defstruct (librarian-envs-loc)
@@ -75,9 +75,9 @@ how to describe itself in the modeline
   " Register a new handler.
 Either a librarian-envs-handler, or a plist to build one
 "
-  (let* ((new-handler (if (and (eq (length args) 1) (lenv-handler-p (car args)))
-                          (car args)
-                        (apply #'make-lenv-handler args)))
+  (let* ((new-handler (if (keywordp (car-safe args))
+                          (apply #'make-lenv-handler args)
+                        (car args)))
          (id (lenv-handler-id new-handler))
          )
     (if (gethash id lenv--registered)
@@ -151,9 +151,9 @@ Either a librarian-envs-handler, or a plist to build one
               :action #'(lambda (x) (add-to-list 'handlers x))
               )
     (cl-loop for name in handlers
-             (setf (lenv-state-locked (gethash name lenv-active)
-                                      (not (lenv-state-locked (gethash name lenv-active)))
-                                      )
+             do
+             (setf (lenv-state-locked (gethash name lenv-active))
+                   (not (lenv-state-locked (gethash name lenv-active)))
                    )
              )
     )
@@ -219,5 +219,8 @@ return: (list marker-id | (marker-id args))
 ;;; librarian-envs.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("lenv-" . "librarian-envs-"))
+;; read-symbol-shorthands: (
+;; ("lenv-" . "librarian-envs-")
+;; ("make-lenv-" . "make-librarian-envs-")
+;; )
 ;; End:
