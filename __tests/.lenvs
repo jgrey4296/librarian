@@ -1,0 +1,4 @@
+# Example librarian-envs spec file
+mamba doot-dev312
+lsp
+py-lsp t
