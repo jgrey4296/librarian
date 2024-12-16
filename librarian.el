@@ -61,13 +61,14 @@
 (require 'librarian-online)
 (require 'librarian-regular)
 (require 'librarian-tagging)
-;; (require 'librarian-envs)
+(require 'librarian-envs)
 
 (defconst librarian-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 
 (defconst librarian-forbid-modes (list 'magit-mode))
 
 (defvar librarian-mode-map (make-sparse-keymap))
+
 (evil-make-intercept-map librarian-mode-map 'normal)
 
 (define-minor-mode librarian-mode

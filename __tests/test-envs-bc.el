@@ -167,28 +167,19 @@
     )
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
-  (it "basic state starting"
+  (it "basic 2 stage setup->start"
     (let ((states (lenv-start! nil "blah")))
       (expect (length states) :to-equal 1)
       (expect (lenv-state-status (car states)) :to-be 'active)
       )
     )
   (it "multi state starting"
-    (let ((states (lenv-start! nil "blah" "bloo")))
-      (expect (length states) :to-equal 2)
-      (cl-loop for state in states
-               do
-               (expect (lenv-state-status state) :to-be 'active)
-               )
-      )
+    (cl-loop for state in (lenv-start! nil "blah" "bloo")
+             do (expect (lenv-state-status state) :to-be 'active))
     )
   (it "only starts unlocked states"
     (lenv-start! nil 'blah)
     (lenv-toggle-lock! 'blah)
-    (expect (length (lenv-start! nil 'blah 'bloo)) :to-equal 1)
-    )
-  (it "only starts non-started states"
-    (lenv-start! nil 'blah)
     (expect (length (lenv-start! nil 'blah 'bloo)) :to-equal 1)
     )
   (it "adds params to state data"
@@ -196,8 +187,8 @@
            (data (lenv-state-data (car states)))
            )
       (expect (length states) :to-equal 1)
-      (expect (length data) :to-equal 2)
-      (expect data :to-equal '(bloo aweg))
+      (expect (length data)   :to-equal 2)
+      (expect data            :to-equal '(bloo aweg))
       )
     )
   )

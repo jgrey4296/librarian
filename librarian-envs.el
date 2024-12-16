@@ -112,44 +112,39 @@ pass a prefix arg to use ivy to manually select from registered handlers
                 (hash-table-keys lenv--registered)
                 :require-match t
                 :action #'(lambda (x) (add-to-list 'specs x))
-                ))
+                )
+      )
     (unless specs (user-error "No Handlers scheduled to run"))
 
     ;; wrap handlers in state with loc
     (setq states (cl-loop for vals in specs
                           collect
                           (funcall #'lenv--activate-handler
-                                 (car vals)
-                                 loc
-                                 (cdr vals))
+                                   (car vals)
+                                   loc
+                                   (cdr vals))
                           )
           )
-    ;; filter locked and already started
-    (setq states (-reject #'(lambda (x)
-                              (or (eq (lenv-state-status x) 'active)
-                                  (lenv-state-locked x)))
-                              states))
-    (cl-loop for state in states
-             do
-             (let ((handler (lenv--get-handler (lenv-state-id state))))
-               ;; if necessary run :select and choose from it
-               ;; run setup
-               (--if-let (lenv-handler-setup handler)
-                   (apply it (lenv-state-data state)))
-               ;; run start
-               (--if-let (lenv-handler-start handler)
-                   (apply it (lenv-state-data state)))
-               ;; add modeline
-               (--if-let (lenv-handler-modeline handler)
-                   (add-to-list 'global-mode-string it)
-                   )
-               )
-             ;; Set status
-             (setf (lenv-state-status state) 'active)
-             )
-    ;; run enter hooks
-    (run-hooks 'lenv-enter-hook)
-    states
+    (prog1
+        (cl-loop for state in states
+                 for valid              = (and state (lenv-state-p state) (not (lenv-state-locked state)))
+                 when valid for status  = (lenv-state-status state)
+                 when valid for handler = (lenv--get-handler (lenv-state-id state))
+                 when (and valid handler (eq status 'nil)) do
+                 ;; run setup and set modeline
+                 (--if-let (lenv-handler-setup handler)    (apply it (lenv-state-data state)))
+                 (--if-let (lenv-handler-modeline handler) (add-to-list 'global-mode-string it))
+                 (setf (lenv-state-status state) 'setup)
+                 when (and valid handler) do
+                 ;; run start
+                 (--if-let (lenv-handler-start handler)    (apply it (lenv-state-data state)))
+                 (setf (lenv-state-status state) 'active)
+                 ;; collect them to return
+                 when (and valid (eq (lenv-state-status state) 'active)) collect state
+                 )
+      ;; run enter hooks
+      (run-hooks 'lenv-enter-hook)
+      )
     )
   )
 
@@ -173,16 +168,21 @@ pass a prefix arg to use ivy to manually select from registered handlers
                           collect
                           (lenv--get-state id)
                           ))
-    ;; filter locked
-    (setq states (-reject #'(lambda (x)
-                              (or (not x)
-                                  (lenv-state-locked x)))
-                          states))
-    ;; call exit-funcs
-    ;; call exit-hooks
-    ;; call teardown funcs
-    ;; remove modeline funcs
-    states
+    (cl-loop for state in states
+             for valid = (and state (lenv-state-p state) (not (lenv-state-locked state)))
+             when valid for status = (lenv-state-status state)
+             ;; or Deactivate
+             when (eq status 'active) do
+             (let ((handler (lenv--get-handler (lenv-state-id state))))
+               (--if-let (lenv-handler-stop handler)     (apply it (lenv-state-data state))))
+             (setf (lenv-state-status state) 'setup)
+             ;; Teardown
+             when (eq status 'setup) do
+             (let ((handler (lenv--get-handler (lenv-state-id state))))
+               (--if-let (lenv-handler-teardown handler) (apply it (lenv-state-data state))))
+             (setf (lenv-state-status state) nil)
+             when valid collect state
+             )
     )
   )
 
