@@ -30,48 +30,43 @@
   (require 'f)
   )
 
-(defconst librarian-regular--splitter "#")
+(defconst lir--splitter "#")
 
-(defvar librarian-regular--cache (make-hash-table))
+(defvar lir-cache (make-hash-table))
 
-(defvar librarian-regular--location nil)
+(defvar lir-location nil)
 
-(defvar-local librarian-regular--targets nil)
+(defvar-local lir-targets nil)
 
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
-files of urls in librarian-regular--location "
+files of urls in lir-location "
   :init-value nil
   :lighter "librarian-regular"
   ;; :global t
   :keymap nil
-  (setq-local librarian-regular--targets
+  (setq-local lir-targets
               ;; Loop for each active mode
               (cl-remove-duplicates
                (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                        ;; that has a regular urls file
-                        when (f-exists? (f-join librarian-regular--location (symbol-name mode)))
-                        do
-                        (unless (gethash mode librarian-regular--cache)
-                          ;; put the file contents in as necessary
-                          (puthash mode (librarian-regular--load-file (f-join librarian-regular--location (symbol-name mode)))
-                                   librarian-regular--cache)
-                          )
-                        ;; and append the total for this buffer
-                        append
-                        (gethash mode librarian-regular--cache)
+                        for source-exists = (f-exists? (f-join lir-location (symbol-name mode)))
+                        when (and source-exists (not (gethash mode lir-cache)))
+                        do ;; load the source file
+                        (puthash mode (lir--load-file (f-join lir-location (symbol-name mode))) lir-cache)
+                        ;; and construct the result list
+                        when source-exists append (gethash mode lir-cache)
                         )
                :test #'equal)
               )
   )
 
-(defun librarian-regular--load-file (file)
+(defun lir--load-file (file)
   "read a list of (name . url) from the given file"
   (let (targets)
     (with-temp-buffer
       (insert-file-contents file)
       (mapc #'(lambda (x)
-                (-when-let (vals (split-string x librarian-regular--splitter t " +"))
+                (-when-let (vals (split-string x lir--splitter t " +"))
                   (push (cons (car vals) (cadr vals)) targets)
                   ))
             (s-lines (buffer-substring-no-properties (point-min) (point-max)))
@@ -81,26 +76,35 @@ files of urls in librarian-regular--location "
     )
   )
 
-(defun librarian-regular-minor-mode/turn-on ()
+(defun lir-minor-mode/turn-on ()
   (unless (minibufferp)
     (librarian-regular-minor-mode 1))
   )
 
-(define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode librarian-regular-minor-mode/turn-on)
+(define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode lir-minor-mode/turn-on)
 
 (defun librarian-regular-go ()
+  " suggest a list of regular urls to browse to "
   (interactive)
   (ivy-read "Lookup: "
-            librarian-regular--targets
-            :require-match t :sort t
+            lir-targets
+            :require-match t
+            :sort t
+            ;; TODO use browse handler
             :action #'(lambda (x) (browse-url (cdr x)))
             )
 )
 
 (defun librarian-regular-clear ()
+  " Clear the cache of librarian-regular "
   (interactive)
-  (clrhash librarian-regular--cache)
+  (clrhash lir-cache)
   )
 
-(provide 'librarian-regular)
+(provide 'librarian--regular)
 ;;; librarian-regular.el ends here
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("lir-" . "librarian--regular-")
+;; )
+;; End:

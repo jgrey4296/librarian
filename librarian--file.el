@@ -23,11 +23,16 @@
 ;;; Code:
 ;;-- end header
 
-(defvar librarian-file-defaults '(librarian-backend--bug-reference
-                                  librarian-backend--ffap))
+(defvar lif-defaults '(librarian--backend--bug-reference
+                       librarian--backend--ffap))
 
 ;; TODO add management of gtags
 
 
-(provide 'libarian-file-management)
+(provide 'librarian--file)
 ;;; libarian-file-management.el ends here
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("lif-" . "librarian--file-")
+;; )
+;; End:

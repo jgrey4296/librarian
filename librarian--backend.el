@@ -1,51 +1,34 @@
 ;;; librarian-handlers.el -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;-- header
 ;;
-;; Copyright (C) 2023 John Grey
-;;
-;; Author: John Grey <https://github.com/jgrey4296>
-;; Maintainer: John Grey <johngrey@Johns-Mac-mini.local>
-;; Created: September 03, 2023
-;; Modified: September 03, 2023
-;; Version: 0.0.1
-;; Keywords:
-;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3"))
-;; Package written on: ((emacs 28.2))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;; Commentary:
 ;;
 ;;
 ;;
 ;;; Code:
 ;;-- end header
 
-(require 'thingatpt)
-(require 'eldoc)
-(require 'ivy)
-(require 'xref)
-(require 'evil)
-(require 'counsel)
+(eval-when-compile
+  (require 'thingatpt)
+  (require 'eldoc)
+  (require 'ivy)
+  (require 'xref)
+  (require 'evil)
+  (require 'counsel)
+  )
 
-(unless (boundp 'counsel-search-engine)
-  (defvar counsel-search-engine nil))
-(unless (boundp 'ivy-initial-inputs-alist)
-  (defvar ivy-initial-inputs-alist nil))
+(unless (boundp 'counsel-search-engine)    (defvar counsel-search-engine nil))
+(unless (boundp 'ivy-initial-inputs-alist) (defvar ivy-initial-inputs-alist nil))
 
-(defvar librarian-online--amazon-url "")
+(defvar lib--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
 
-(defvar librarian--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
+(defvar lib--bibtex-scholar-search-fields-exact '("title"))
 
-(defvar librarian--bibtex-scholar-search-fields-exact '("title"))
-
-(defun librarian-backend--browser-amazon (url &rest args)
+(defun lib---browser-amazon (url &rest args)
   ;; TODO Handle US and UK
   (signal 'browse-todo url)
   )
 
-(defun librarian-backend--online-google (query)
+(defun lib---online-google (query)
   "Search Google, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
          (let ((ivy-initial-inputs-alist `((t . ,query)))
@@ -58,7 +41,7 @@
                :input query)
          t)))
 
-(defun librarian-backend--online-duckduckgo (query)
+(defun lib---online-duckduckgo (query)
   "Search DuckDuckGo, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
          (let ((ivy-initial-inputs-alist `((t . ,query)))
@@ -66,19 +49,19 @@
            (call-interactively #'counsel-search)
            t))))
 
-(defun librarian-backend--words-dictionary (identifier)
+(defun lib---words-dictionary (identifier)
   "Look up dictionary definition for IDENTIFIER."
   (when (derived-mode-p 'text-mode)
-    (librarian-dictionary-definition identifier)
+    (librarian-words-definition identifier)
     'deferred))
 
-(defun librarian-backend--words-thesaurus (identifier)
+(defun lib---words-thesaurus (identifier)
   "Look up synonyms for IDENTIFIER."
   (when (derived-mode-p 'text-mode)
     (librarian-synonyms identifier)
     'deferred))
 
-(defun librarian-backend--dumb-jump (_identifier)
+(defun lib---dumb-jump (_identifier)
   "Look up the symbol at point (or selection) with `dumb-jump', which conducts a
 project search with ag, rg, pt, or git-grep, combined with extra heuristics to
 reduce false positives.
@@ -87,7 +70,7 @@ This backend prefers \"just working\" over accuracy."
   (and (require 'dumb-jump nil t)
        (dumb-jump-go)))
 
-(defun librarian-backend--project-search (identifier)
+(defun lib---project-search (identifier)
   "Conducts a simple project text search for IDENTIFIER.
 
 Uses and requires `+ivy-file-search', `+helm-file-search', or `+vertico-file-search'.
@@ -101,7 +84,7 @@ Will return nil if neither is available. These require ripgrep to be installed."
     )
   )
 
-(defun librarian-backend--evil-goto-def (_identifier)
+(defun lib---evil-goto-def (_identifier)
   "Uses `evil-goto-definition' to conduct a text search for IDENTIFIER in the
 current buffer."
   (when (fboundp 'evil-goto-definition)
@@ -113,7 +96,7 @@ current buffer."
           (not (and (>= pt beg)
                     (<  pt end))))))))
 
-(defun librarian-backend--ffap (identifier)
+(defun lib---ffap (identifier)
   "Tries to locate the file at point (or in active selection).
 Uses find-in-project functionality (provided by ivy, helm, or project),
 otherwise falling back to ffap.el (find-file-at-point)."
@@ -134,7 +117,7 @@ otherwise falling back to ffap.el (find-file-at-point)."
           ((find-file-at-point (ffap-prompter guess))))
     t))
 
-(defun librarian-backend--bug-reference (_identifier)
+(defun lib---bug-reference (_identifier)
   "Searches for a bug reference in user/repo#123 or #123 format and opens it in
 the browser."
   (require 'bug-reference)
@@ -161,23 +144,23 @@ the browser."
                 old-bug-reference-prog-mode)
             (bug-reference-fontify (line-beginning-position) (line-end-position)))))))
 
-(defun librarian-backend--docsets-dash (identifier)
+(defun lib---docsets-dash (identifier)
   " This backend is meant for `librarian-documentation-functions'.
-Docsets can be searched directly via `librarian-in-docsets'."
+Docsets can be searched directly via `librarian-docset-consult'."
   (when (fboundp 'dash-docs-docset-path)
     (when-let (docsets (cl-remove-if-not #'dash-docs-docset-path (dash-docs-buffer-local-docsets)))
-      (librarian-in-docsets nil identifier docsets)
+      (librarian-docset-consult nil identifier docsets)
       'deferred))
   )
 
-(defun librarian-backend--docsets-online (identifier)
+(defun lib---docsets-online (identifier)
   "Open the browser and search for IDENTIFIER online.
 When called for the first time, or with a non-nil prefix argument, prompt for
 the search engine to use."
   (librarian-online identifier
    (librarian--online-provider (not current-prefix-arg))))
 
-(defun librarian-backend--xref-show (fn identifier &optional show-fn)
+(defun lib---xref-show (fn identifier &optional show-fn)
   (let ((xrefs (funcall fn
                         (xref-find-backend)
                         identifier)))
@@ -193,19 +176,19 @@ the search engine to use."
             'deferred
           jumped)))))
 
-(defun librarian-backend--xref-definitions (identifier)
+(defun lib---xref-definitions (identifier)
   "Non-interactive wrapper for `xref-find-definitions'"
   (condition-case _
-      (librarian-backend--xref-show 'xref-backend-definitions identifier #'xref--show-defs)
+      (lib---xref-show 'xref-backend-definitions identifier #'xref--show-defs)
     (cl-no-applicable-method nil)))
 
-(defun librarian-backend--xref-references (identifier)
+(defun lib---xref-references (identifier)
   "Non-interactive wrapper for `xref-find-references'"
   (condition-case _
-      (librarian-backend--xref-show 'xref-backend-references identifier #'xref--show-xrefs)
+      (lib---xref-show 'xref-backend-references identifier #'xref--show-xrefs)
     (cl-no-applicable-method nil)))
 
-(defun librarian-backend--bibliography-scholar (arg)
+(defun lib---bibliography-scholar (arg)
   "Open the bibtex entry at point in google-scholar by its doi.
 With arg, searchs the dplp instead.
 "
@@ -220,5 +203,10 @@ With arg, searchs the dplp instead.
     )
   )
 
-(provide 'librarian-backends)
+(provide 'librarian--backend)
 ;;; librarian-handlers.el ends here
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("lib-" . "librarian--backend-")
+;; )
+;; End:

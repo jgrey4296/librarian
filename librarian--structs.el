@@ -6,11 +6,14 @@
 ;;
 ;;-- end Header
 
+(defconst lis-types '(:online :doc :tag))
+
 (cl-defstruct lis-backend
   "A Registered backend"
-  (:id nil  :type 'symbol)
-  (:mod nil :type 'symbol)
-  (:fn nil  :type 'lambda)
+  (:id   nil  :type 'symbol)
+  (:type nil  :type 'list-types)
+  (:mod  nil  :type 'symbol)
+  (:fn   nil  :type 'lambda)
   )
 
 (provide 'librarian--structs)

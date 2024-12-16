@@ -1,17 +1,19 @@
-;;; tools/lookup/autoload/xwidget.el -*- lexical-binding: t; -*-
+;;; librarian--util.el -*- lexical-binding: t; -*-
 
-(defvar librarian--local-var-skip-regexp (rx (or "-map"
+(defvar liu-local-var-skip-regexp (rx (or "-map"
                                                  "keymap"
                                                  "display-table"
                                                  "imenu-generic-expression"
                                                  "font-lock-keywords"))
   )
 
-(defvar librarian--xwidget-webkit-last-session-buffer nil)
+(defvar liu-xwidget-webkit-last-session-buffer nil)
 
-(defvar librarian-refocus-target  "iTerm")
+(defvar liu-refocus-target  "iTerm")
 
-(defun librarian-get (&optional thing prompt arg)
+(defvar liu--buffer-display-fn #'+popup-buffer)
+
+(defun liu-get (&optional thing prompt arg)
   "Grab the current selection, THING at point, or xref identifier at point.
 returns a str, potentially with text properties"
   (interactive "i\ni\np")
@@ -37,7 +39,7 @@ returns a str, potentially with text properties"
     )
   )
 
-(defun librarian-xwidget-webkit-open-url-fn (url &optional new-session)
+(defun liu-xwidget-webkit-open-url-fn (url &optional new-session)
   (if (not (display-graphic-p))
       (browse-url url)
     (unless (featurep 'xwidget-internal)
@@ -45,21 +47,21 @@ returns a str, potentially with text properties"
     (let ((orig-last-session-buffer (if (boundp 'xwidget-webkit-last-session-buffer)
                                         xwidget-webkit-last-session-buffer
                                       nil)))
-      (setq xwidget-webkit-last-session-buffer librarian--xwidget-webkit-last-session-buffer)
+      (setq xwidget-webkit-last-session-buffer liu-xwidget-webkit-last-session-buffer)
       (save-window-excursion
         (xwidget-webkit-browse-url url new-session))
       (pop-to-buffer xwidget-webkit-last-session-buffer)
-      (setq librarian--xwidget-webkit-last-session-buffer xwidget-webkit-last-session-buffer
+      (setq liu-xwidget-webkit-last-session-buffer xwidget-webkit-last-session-buffer
             xwidget-webkit-last-session-buffer orig-last-session-buffer))))
 
-(defun librarian--regain-focus ()
+(defun liu--regain-focus ()
   " utility to regain focus when a command will
 change focus to something else (preview, firefox)
 force it back to the terminal
 "
   (when (eq system-type 'darwin)
     (call-process "osascript" nil nil nil
-                  "-e" (format "tell application \"%s\"" librarian-refocus-target)
+                  "-e" (format "tell application \"%s\"" liu-refocus-target)
                   "-e" "activate"
                   "-e" "end tell"
                   )
@@ -77,57 +79,22 @@ force it back to the terminal
             )
   )
 
-(defun librarian-pop-to-xref (result)
+(defun liu-pop-to-xref (result)
+  " Given a string | xref (item?)
+Display the result
+ "
   (if (stringp result)
       (message result)
     (let* ((carousel-suppress-adding t)
-           (xrefs (list)) ;; (anaconda-mode-make-xrefs result))
+           (xrefs  (list))
            (marker (save-excursion (xref-location-marker (xref-item-location (cl-first xrefs)))))
-           (buf (marker-buffer marker))
+           (buf    (marker-buffer marker))
            )
-      (+popup-buffer buf)
+      (funcall liu--buffer-display-fn buf)
       (with-current-buffer buf
         (xref--goto-char marker))
       )
     )
-  )
-
-(defun librarian--jump-to (prop identifier &optional display-fn arg)
-  (let ((origin (point-marker))
-        (result (librarian--run-handler prop identifier))
-        )
-    ;; Deal with result
-    (unwind-protect
-        (when (cond ((null result)
-                     (message "No lookup handler could find %S" identifier)
-                     nil)
-                    ((markerp result)
-                     (funcall (or display-fn #'switch-to-buffer)
-                              (marker-buffer result))
-                     (goto-char result)
-                     result)
-                    (result))
-          (with-current-buffer (marker-buffer origin)
-            (better-jumper-set-jump (marker-position origin)))
-          result)
-      (set-marker origin nil))
-    )
-  )
-
-(defun librarian-file (&optional path)
-  "Figure out PATH from whatever is at point and open it.
-
-Each function in `librarian-file-functions' is tried until one changes the point
-or the current buffer.
-
-Otherwise, falls back on `find-file-at-point'."
-  (interactive)
-  (cond ((and path
-              buffer-file-name
-              (file-equal-p path buffer-file-name)
-              (user-error "Already here")))
-        ((librarian--jump-to :file path))
-        ((user-error "Couldn't find any files here")))
   )
 
 ;;;###autoload
@@ -142,7 +109,7 @@ Otherwise, falls back on `find-file-at-point'."
                         (emacs-lisp-mode))
           val)
       (cl-loop for x in vars do
-               (if (or (string-match librarian--local-var-skip-regexp
+               (if (or (string-match liu-local-var-skip-regexp
                                      (symbol-name (car x)))
                         (< 40 (length (format "%s" (cdr x)))))
                    (princ (format "(%s : Skipped)" (car x)))
@@ -167,7 +134,7 @@ Otherwise, falls back on `find-file-at-point'."
     )
   )
 
-(defun librarian--fix-ivy-xrefs (fn fetcher alist)
+(defun liu--fix-ivy-xrefs (fn fetcher alist)
   "HACK Fix #4386: `ivy-xref-show-xrefs' calls `fetcher' twice, which has
   side effects that breaks in some cases (i.e. on `dired-do-find-regexp')."
   (when (functionp fetcher)
@@ -175,6 +142,11 @@ Otherwise, falls back on `find-file-at-point'."
           (funcall fetcher)))
   (funcall fn fetcher alist))
 
-(advice-add #'ivy-xref-show-xrefs :around #'librarian--fix-ivy-refs)
+(advice-add #'ivy-xref-show-xrefs :around #'liu--fix-ivy-refs)
 
-(provide 'librarian-utils)
+(provide 'librarian--util)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("liu-" . "librarian--util-")
+;; )
+;; End:
