@@ -177,8 +177,6 @@ then return the state
     )
   )
 
-
-;; Public functions and aliases
 (defun lenv-start (arg &rest ids)
   " Main access point for setting up environment.
 Acts as a Dispatch to activate appropriate environment
@@ -309,17 +307,39 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
 )
 
+;; Public aliases
+
+;;;###autoload
 (defalias 'librarian-envs-handler-p    #'librarian--envs-handler-p)
+
+;;;###autoload
 (defalias 'librarian-envs-start!       #'librarian--envs-start)
+
+;;;###autoload
 (defalias 'librarian-envs-stop!        #'librarian--envs-stop)
+
+;;;###autoload
 (defalias 'librarian-envs-toggle-lock! #'librarian--envs-toggle-lock)
+
+;;;###autoload
 (defalias 'librarian-envs-report!      #'librarian--envs-report)
 
+;;;###autoload
 (defvaralias 'librarian-envs-enter-hook 'librarian--envs-enter-hook)
+
+;;;###autoload
 (defvaralias 'librarian-envs-exit-hook  'librarian--envs-exit-hook)
+
+;;;###autoload
 (defvaralias 'librarian-envs-active     'librarian--envs-active)
+
+;;;###autoload
 (defvaralias 'librarian-envs-marker     'librarian--envs-marker)
+
+;;;###autoload
 (defvaralias 'librarian-envs-process-name 'librarian--envs-process-name)
+
+;;;###autoload
 (defvaralias 'librarian-envs-buffer-name 'librarian--envs-buffer-name)
 
 (provide 'librarian--envs)
