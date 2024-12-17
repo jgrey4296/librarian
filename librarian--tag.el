@@ -22,9 +22,12 @@
 ;;; Code:
 
 ;;-- end header
-(require 'cl-lib)
-(require 'evil)
-(require 'f)
+
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'evil)
+  (require 'f)
+  )
 
 (defvar lit-mode-global-tags      (make-hash-table :test 'equal))
 

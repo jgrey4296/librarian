@@ -54,23 +54,23 @@
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "can register from a plist"
-    (expect (gethash 'from-plist lenv--registered) :to-be nil)
+    (expect (gethash 'from-plist lenv-registered) :to-be nil)
     (apply #'lenv-register plist)
-    (expect (gethash 'from-plist lenv--registered) :not :to-be nil)
+    (expect (gethash 'from-plist lenv-registered) :not :to-be nil)
     )
   (it "can register from a handler"
-    (expect (gethash 'from-struct lenv--registered) :to-be nil)
+    (expect (gethash 'from-struct lenv-registered) :to-be nil)
     (lenv-register hand)
-    (expect (gethash 'from-struct lenv--registered) :not :to-be nil)
+    (expect (gethash 'from-struct lenv-registered) :not :to-be nil)
     )
   (it "can get a registered handler by string id"
     (lenv-register hand)
-    (expect (lenv--get-handler "from-struct") :to-be hand))
+    (expect (lenv-get-handler "from-struct") :to-be hand))
   (it "can get a registered handler by symbol id"
     (lenv-register hand)
-    (expect (lenv--get-handler 'from-struct) :to-be hand))
+    (expect (lenv-get-handler 'from-struct) :to-be hand))
   (it "will return nill on getting a non-existing handler"
-    (expect (lenv--get-handler 'blah) :to-be nil))
+    (expect (lenv-get-handler 'blah) :to-be nil))
 )
 
 (describe "handler activation:"
@@ -82,20 +82,20 @@
                )
   (it "should add a state obj on activation"
     (expect (hash-table-empty-p lenv-active) :to-be t)
-    (lenv--activate-handler 'test loc)
+    (lenv-activate-handler 'test loc)
     (expect (hash-table-empty-p lenv-active) :to-be nil)
     )
   (it "should return existing handler on re-activate"
     (expect (hash-table-empty-p lenv-active) :to-be t)
-    (let ((state (lenv--activate-handler 'test loc)))
+    (let ((state (lenv-activate-handler 'test loc)))
       (expect (hash-table-empty-p lenv-active) :to-be nil)
-      (expect (lenv--activate-handler 'test loc) :to-be state)
+      (expect (lenv-activate-handler 'test loc) :to-be state)
       )
     )
   (it "can get an activated handler state"
-    (let ((state (lenv--activate-handler 'test loc)))
-      (expect (lenv--get-state 'test) :to-be state)
-      (expect (lenv--get-state "test") :to-be state)
+    (let ((state (lenv-activate-handler 'test loc)))
+      (expect (lenv-get-state 'test) :to-be state)
+      (expect (lenv-get-state "test") :to-be state)
       )
     )
   )
@@ -104,11 +104,11 @@
   :var ((loc (make-lenv-loc :root default-directory :marker lenv-marker)))
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "can expand the marker path"
-    (expect (lenv--expand-marker loc) :to-equal (f-join default-directory lenv-marker))
-    (should (f-exists? (lenv--expand-marker loc)))
+    (expect (lenv-expand-marker loc) :to-equal (f-join default-directory lenv-marker))
+    (should (f-exists? (lenv-expand-marker loc)))
     )
   (it "can parse the marker"
-    (expect (lenv--parse-marker loc) :to-equal '(("mamba" "doot-dev312") ("lsp") ("py-lsp" "t")))
+    (expect (lenv-parse-marker loc) :to-equal '(("mamba" "doot-dev312") ("lsp") ("py-lsp" "t")))
     )
 )
 
@@ -121,35 +121,35 @@
     (lenv-clear-registry)
     (lenv-register hand1)
     (lenv-register hand2)
-    (lenv--activate-handler 'blah loc)
-    (lenv--activate-handler 'bloo loc)
+    (lenv-activate-handler 'blah loc)
+    (lenv-activate-handler 'bloo loc)
     )
   (before-each
-    (setf (lenv-state-locked (lenv--get-state 'blah)) nil
-          (lenv-state-locked (lenv--get-state 'bloo)) nil
+    (setf (lenv-state-locked (lenv-get-state 'blah)) nil
+          (lenv-state-locked (lenv-get-state 'bloo)) nil
           )
     )
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "can toggle a handler"
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be nil)
-    (lenv-toggle-lock! 'blah)
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be t)
-    (lenv-toggle-lock! 'blah)
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be nil)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be nil)
+    (lenv-toggle-lock 'blah)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be t)
+    (lenv-toggle-lock 'blah)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be nil)
     )
   (it "can toggle multiple handlers"
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be nil)
-    (expect (lenv-state-locked (lenv--get-state 'bloo)) :to-be nil)
-    (lenv-toggle-lock! 'blah)
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be t)
-    (expect (lenv-state-locked (lenv--get-state 'bloo)) :to-be nil)
-    (lenv-toggle-lock! 'blah 'bloo)
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be nil)
-    (expect (lenv-state-locked (lenv--get-state 'bloo)) :to-be t)
-    (lenv-toggle-lock! 'blah 'bloo)
-    (expect (lenv-state-locked (lenv--get-state 'blah)) :to-be t)
-    (expect (lenv-state-locked (lenv--get-state 'bloo)) :to-be nil)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be nil)
+    (expect (lenv-state-locked (lenv-get-state 'bloo)) :to-be nil)
+    (lenv-toggle-lock 'blah)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be t)
+    (expect (lenv-state-locked (lenv-get-state 'bloo)) :to-be nil)
+    (lenv-toggle-lock 'blah 'bloo)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be nil)
+    (expect (lenv-state-locked (lenv-get-state 'bloo)) :to-be t)
+    (lenv-toggle-lock 'blah 'bloo)
+    (expect (lenv-state-locked (lenv-get-state 'blah)) :to-be t)
+    (expect (lenv-state-locked (lenv-get-state 'bloo)) :to-be nil)
 
     )
 )
@@ -168,22 +168,22 @@
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "basic 2 stage setup->start"
-    (let ((states (lenv-start! nil "blah")))
+    (let ((states (lenv-start nil "blah")))
       (expect (length states) :to-equal 1)
       (expect (lenv-state-status (car states)) :to-be 'active)
       )
     )
   (it "multi state starting"
-    (cl-loop for state in (lenv-start! nil "blah" "bloo")
+    (cl-loop for state in (lenv-start nil "blah" "bloo")
              do (expect (lenv-state-status state) :to-be 'active))
     )
   (it "only starts unlocked states"
-    (lenv-start! nil 'blah)
-    (lenv-toggle-lock! 'blah)
-    (expect (length (lenv-start! nil 'blah 'bloo)) :to-equal 1)
+    (lenv-start nil 'blah)
+    (lenv-toggle-lock 'blah)
+    (expect (length (lenv-start nil 'blah 'bloo)) :to-equal 1)
     )
   (it "adds params to state data"
-    (let* ((states (lenv-start! nil '(blah bloo aweg)))
+    (let* ((states (lenv-start nil '(blah bloo aweg)))
            (data (lenv-state-data (car states)))
            )
       (expect (length states) :to-equal 1)
@@ -212,7 +212,7 @@
   (it "callbacks setup/start"
     (expect 'setup :not :to-have-been-called)
     (expect 'start :not :to-have-been-called)
-    (lenv-start! nil 'blah)
+    (lenv-start nil 'blah)
     (expect 'setup :to-have-been-called)
     (expect 'start :to-have-been-called)
     )
@@ -230,14 +230,14 @@
     (lenv-clear-registry)
     (lenv-register hand1)
     (lenv-register hand2)
-    (lenv--activate-handler 'blah loc)
-    (lenv--activate-handler 'bloo loc)
+    (lenv-activate-handler 'blah loc)
+    (lenv-activate-handler 'bloo loc)
     )
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "can stop handlers"
-    (expect (lenv--get-state 'blah) :not :to-be nil)
-    (expect (lenv-stop! nil 'blah) :not :to-be nil)
+    (expect (lenv-get-state 'blah) :not :to-be nil)
+    (expect (lenv-stop nil 'blah) :not :to-be nil)
     )
 )
 
@@ -257,10 +257,9 @@
 ;; This file is not part of GNU Emacs.
 ;;
 ;;-- end Footer
-;;; test-envs-bc.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
-;; ("lenv-" . "librarian-envs-")
-;; ("make-lenv-" . "make-librarian-envs-")
+;; ("lenv-" . "librarian--envs-")
+;; ("make-lenv-" . "make-librarian--envs-")
 ;; )
 ;; End:
