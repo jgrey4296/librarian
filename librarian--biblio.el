@@ -389,6 +389,15 @@ Then move the pdfs of the entry to the canonical location
     )
   )
 
+(defun lib-font-lock-mod-hook ()
+  (pushnew!
+   bibtex-font-lock-keywords
+   '(" title.+$" (0 '(:background "mediumpurple4")))
+   '("\\(file\\).+?=" (1 '(:background "darkgoldenrod")))
+   '("\\(tags\\).+?=.+$" (0 '(:background "darkseagreen")))
+   )
+  )
+
 ;;;; Public Aliases
 
 (defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
@@ -402,6 +411,22 @@ Then move the pdfs of the entry to the canonical location
 (defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
 
 (defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
+
+(defalias 'librarian-biblio-build-file-list          #'librarian--bibio-build-list)
+
+(defalias 'librarian-biblio-get-meta                 #'librarian--biblio-meta-retrieval)
+
+(defalias 'librarian-biblio-set-cover                #'librarian--biblio-set-ebook-cover)
+
+(defalias 'librarian-biblio-update-entry-from-doi    #'librarian--biblio-update-entry)
+
+(defalias 'librarian-biblio-create-from-doi          #'librarian--biblio-insert-entry-from-doi)
+
+(defalias 'librarian-biblio-refile-to-canonical      #'librarian--biblio-refile-by-year)
+
+(defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
+
+(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
 
 (provide 'librarian--biblio)
 ;;; librarian-bibliography.el ends here
