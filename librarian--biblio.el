@@ -14,7 +14,7 @@
 
 (defvar lib-library-loc "" "Where the main bibtex library is located")
 (defvar lib-pdf-loc     "" "Where relative file paths are located")
-(defvar lib-unsourced-bib-file "" "target unsourced bib file"
+(defvar lib-unsourced-bib-file "" "target unsourced bib file")
 
 (defconst lib-meta-buffer "*Metadata*")
 
@@ -87,7 +87,7 @@
              (text (string-trim (cdr x) "{" "}"))
              )
     (expand-file-name (if (f-relative? text)
-                          (f-join jg-bibtex-pdf-loc text)
+                          (f-join lib-pdf-loc text)
                         text))
         )
     )
@@ -353,7 +353,12 @@ Then move the pdfs of the entry to the canonical location
   (interactive)
   (unless (save-selected-window (other-window 1) (eq major-mode 'bibtex-mode))
     (user-error "Other Window Is Not a Bibtex Buffer"))
-  (save-excursion (+jg-bibtex-copy-entry))
+  (save-excursion
+    (let ((start (bibtex-beginning-of-entry))
+          (end (bibtex-end-of-entry)))
+      (copy-region-as-kill start end)
+      )
+    )
   (save-selected-window (other-window 1)
                         (end-of-buffer)
                         (newline-and-indent)
@@ -367,20 +372,34 @@ Then move the pdfs of the entry to the canonical location
   )
 
 ;;;; Public Aliases
+;;;###autoload
 (defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
+;;;###autoload
 (defvaralias 'librarian-biblio-program     'librarian--biblio-meta-program)
+;;;###autoload
 (defvaralias 'librarian-bibio-args         'librarian--biblio-meta-opts)
+;;;###autoload
 (defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
+;;;###autoload
 (defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
+;;;###autoload
 (defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
 
+;;;###autoload
 (defalias 'librarian-biblio-build-file-list          #'librarian--bibio-build-list)
+;;;###autoload
 (defalias 'librarian-biblio-get-meta                 #'librarian--biblio-meta-retrieval)
+;;;###autoload
 (defalias 'librarian-biblio-set-cover                #'librarian--biblio-set-ebook-cover)
+;;;###autoload
 (defalias 'librarian-biblio-update-entry-from-doi    #'librarian--biblio-update-entry)
+;;;###autoload
 (defalias 'librarian-biblio-create-from-doi          #'librarian--biblio-insert-entry-from-doi)
+;;;###autoload
 (defalias 'librarian-biblio-refile-to-canonical      #'librarian--biblio-refile-by-year)
+;;;###autoload
 (defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
+;;;###autoload
 (defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
 
 (provide 'librarian--biblio)
