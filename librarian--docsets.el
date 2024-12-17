@@ -1,18 +1,16 @@
 ;;; librarian-docsets.el -*- lexical-binding: t; -*-
 
-(require 'dash-docs)
-
 (unless (boundp 'dash-docs-docsets)
   (defvar dash-docs-docsets nil))
 
-(defvar librarian-docsets-defaults '(librarian-backend--docsets-dash
-                                     librarian-backend--docsets-online
-                                     )
+(defvar lid-defaults '(librarian--backend--docsets-dash
+                       librarian--backend--docsets-online
+                       )
   )
 
-(defvar librarian-docsets-path nil)
+(defvar lid-path nil)
 
-(defun librarian--consult-search (sync cb)
+(defun lid-consult-search (sync cb)
   (lambda (action)
     (pcase action
       ((pred stringp)
@@ -22,7 +20,8 @@
          (funcall sync cands)))
       (_ (funcall sync action)))))
 
-(defun librarian-in-docsets (arg &optional query docsets)
+;;;###autoload
+(defun librarian-docset-consult (arg &optional query docsets)
   "Librarian query relevant docsets
 
 QUERY is a string and docsets in an array of strings, each a name of a Dash
@@ -36,10 +35,28 @@ installed with `dash-docs-install-docset'."
         (dash-docs-docsets (if arg
                                (dash-docs-installed-docsets)
                              (cl-remove-if-not #'dash-docs-docset-path (or docsets dash-docs-docsets))))
-        (query (librarian-get query))
+        (query (librarian--util-get query))
         )
     (message "Searching docsets %s" dash-docs-docsets)
     (counsel-dash query))
 )
 
-(provide 'librarian-docsets)
+(evil-define-command evil-librarian-docset-consult (query &optional bang)
+  "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
+install it if necessary)."
+  (interactive "<a><!>")
+  (let (selected)
+    (when bang
+      (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
+      (unless (dash-docs-docset-path selected)
+        (librarian-install-docset selected)))
+    (librarian-docset-consult query selected)))
+
+(defalias 'librarian-docset-install #'counsel-dash-install-docset)
+
+(provide 'librarian--docsets)
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("lid-" . "librarian--docsets-")
+;; )
+;; End:

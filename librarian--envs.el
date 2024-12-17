@@ -1,10 +1,11 @@
 ;;; librarian-envs.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- Header
-;; File Commentary:
+;;-- header
 ;;
 ;;
 ;;
-;;-- end Header
+;;
+;;; Code:
+;;-- end header
 
 ;;-- vars
 
@@ -33,7 +34,7 @@
 ;;-- end vars
 
 ;;-- structs
-(cl-defstruct (librarian-envs-handler)
+(cl-defstruct (lenv-handler)
   " An environment handler.
 describes the language it handles,
 its hooks
@@ -52,7 +53,7 @@ how to describe itself in the modeline
   (desc     nil     :type 'str              :read-only t :documentation "for reporting")
   )
 
-(cl-defstruct (librarian-envs-state)
+(cl-defstruct (lenv-state)
   "The current envs state for a handler"
   (id      nil   :type 'symbol :documentation "the same as the handler")
   (status  nil   :type 'symbol :documentation "nil|setup|active")
@@ -61,7 +62,7 @@ how to describe itself in the modeline
   (data    nil   :type 'list :documentation "a list for arbitrary data handlers can put")
   )
 
-(cl-defstruct (librarian-envs-loc)
+(cl-defstruct (lenv-loc)
   "Description of where environment data was found"
   (root       nil :type 'path :documentation "root of the project")
   (marker     nil :type 'path :documentation "relpath to the marker from the root")
@@ -69,7 +70,7 @@ how to describe itself in the modeline
 ;;-- end structs
 
 ;;;###autoload
-(defun lenv-register (&rest args)
+(defun librarian-envs-register (&rest args)
   " Register a new handler.
 Either a librarian-envs-handler, or a plist to build one
 "
@@ -78,9 +79,9 @@ Either a librarian-envs-handler, or a plist to build one
                         (car args)))
          (id (lenv-handler-id new-handler))
          )
-    (if (gethash id lenv--registered)
+    (if (gethash id librarian-envs--registered)
         (user-error "A Handler has already been registered with the name: %s" id)
-      (puthash id new-handler lenv--registered)
+      (puthash id new-handler librarian-envs--registered)
       )
     )
 )
@@ -91,7 +92,7 @@ Either a librarian-envs-handler, or a plist to build one
   )
 
 ;;;###autoload
-(defun lenv-start! (arg &rest ids)
+(defun librarian-envs-start! (arg &rest ids)
   " Main access point for setting up environment.
 Acts as a Dispatch to activate appropriate environment
 and call the currently selected lsp/conda client entrypoint
@@ -149,7 +150,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload
-(defun lenv-stop! (arg &rest ids)
+(defun librarian-envs-stop! (arg &rest ids)
   (interactive)
   (let ((loc (lenv--init-loc))
         (specs (or ids
@@ -187,7 +188,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload
-(defun lenv-toggle-lock! (&rest rest)
+(defun librarian-envs-toggle-lock! (&rest rest)
   "Toggle whether the environment can be changed or not"
   (interactive)
   (let ((ids rest))
@@ -206,7 +207,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload
-(defun lenv-report! ()
+(defun librarian-envs-report! ()
   (interactive)
   (with-temp-buffer-window "*Envs Report*" 'display-buffer nil
     ;; Temp window of:
@@ -300,7 +301,8 @@ then return the state
     )
   )
 
-(provide 'librarian-envs)
+(defalias 'librarian-envs-handler-p #'librarian--envs-handler-p)
+(provide 'librarian--envs)
 
 ;;-- Footer
 ;; Copyright (C) 2024 john
@@ -319,10 +321,9 @@ then return the state
 ;;
 ;;-- end Footer
 ;;; librarian-envs.el ends here
-
 ;; Local Variables:
 ;; read-symbol-shorthands: (
-;; ("lenv-" . "librarian-envs-")
-;; ("make-lenv-" . "make-librarian-envs-")
+;; ("lenv-" . "librarian--envs-")
+;; ("make-lenv-" . "make-librarian--envs-")
 ;; )
 ;; End:

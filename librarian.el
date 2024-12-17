@@ -23,55 +23,70 @@
 ;;; Code:
 ;;-- end header
 
-(require 'f)
-(require 'cl-lib)
-(require 's)
-(require 'dash)
-(require 'evil-core)
-(require 'evil-common)
-(require 'thingatpt)
-(require 'eldoc)
-(require 'ivy)
-(require 'counsel)
-(require 'eww)
+(eval-when-compile
+  (require 'f)
+  (require 'cl-lib)
+  (require 's)
+  (require 'dash)
 
-(require 'synosaurus)
-(require 'wordnut)
-;; (require 'define-word)
-(when (eq system-type 'darwin) (require 'osx-dictionary))
-(require 'helm-wordnet)
+  (require 'evil-core)
+  (require 'evil-common)
+  (require 'thingatpt)
+  (require 'eldoc)
+  (require 'ivy)
+  (require 'counsel)
+  (require 'eww)
+  (require 'bibtex)
+  (require 'bibtex-completion)
+  (require 'org-ref-bibtex)
 
-(require 'better-jumper)
-(require 'browse-url)
-(require 'counsel-dash)
+  (require 'synosaurus)
+  (require 'powerthesaurus nil t)
+  (require 'wordnut)
+  (when (eq system-type 'darwin) (require 'osx-dictionary))
+  (require 'define-word nil t)
+  (require 'helm-wordnet)
 
-(require 'free-keys)
-(require 'helpful)
-(require 'xref)
-(require 'browse-url)
+  (require 'better-jumper)
+  (require 'browse-url)
+  (require 'counsel-dash)
 
-(require 'librarian-utils)
-(require 'librarian-backends)
-(require 'librarian-words)
-(require 'librarian-browser)
-(require 'librarian-configs)
-(require 'librarian-docsets)
-(require 'librarian-documentation)
-(require 'librarian-man)
-(require 'librarian-online)
-(require 'librarian-regular)
-(require 'librarian-tagging)
-(require 'librarian-envs)
+  (require 'free-keys)
+  (require 'helpful)
+  (require 'xref)
+  (require 'browse-url)
+  (require 'dash-docs)
+  (require 'counsel-dash)
+  )
 
-(defconst librarian-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
+(require 'lib--util)
+(require 'lib--backend)
+(require 'lib--structs)
 
-(defconst librarian-forbid-modes (list 'magit-mode))
+(require 'lib--biblio)
+(require 'lib--browse)
+(require 'lib--config)
+(require 'lib--docsets)
+(require 'lib--doc)
+(require 'lib--envs)
+(require 'lib--file)
+(require 'lib--man)
+(require 'lib--online)
+(require 'lib--regular)
+(require 'lib--tag)
+(require 'lib--tag-chart)
+(require 'lib--words)
 
-(defvar librarian-mode-map (make-sparse-keymap))
+(librarian--doc-init-defaults)
+(defconst lib-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 
-(evil-make-intercept-map librarian-mode-map 'normal)
+(defconst lib-forbid-modes (list 'magit-mode))
 
-(define-minor-mode librarian-mode
+(defvar lib-mode-map (make-sparse-keymap))
+
+(evil-make-intercept-map lib-mode-map 'normal)
+
+(define-minor-mode lib-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :lighter (:eval (format "Browser: %s" librarian-default-browser))
   :keymap librarian-mode-map
@@ -91,16 +106,16 @@
       (progn ;; activating
         (global-librarian-regular-minor-mode 1)
         (global-librarian-tagging-mode 1)
-        (librarian-browser-load-variants)
-        (unless (not (and (boundp 'librarian-configs--modules-cache) librarian-configs--modules-cache))
-          (librarian-configs--build-modules-cache))
+        (librarian--browse-load-variants)
+        (unless (not (and (boundp 'librarian-configs--modules-cache) librarian--config-modules-cache))
+          (librarian--config--build-modules-cache))
 
         (setq xref-show-definitions-function #'ivy-xref-show-defs
               xref-show-xrefs-function       #'ivy-xref-show-xrefs
-              browse-url-browser-function    #'librarian-browser--open-url
+              browse-url-browser-function    #'librarian--browse-open-url
               browse-url-handlers nil
               browse-url-default-handlers '(
-                                            ("." . librarian-browser--open-url)
+                                            ("." . librarian--browse-open-url)
                                             )
               )
         )
@@ -112,6 +127,7 @@
     )
   )
 
+;;;###autoload
 (defun librarian-debug ()
   " Check librarian settings:
    documentation function assignments,
@@ -121,14 +137,14 @@
    "
   (interactive)
   (let ((handlers (list
-                   (cons :assignments     librarian-assignments-functions)
-                   (cons :definition      librarian-definition-functions)
-                   (cons :declaration     librarian-declaration-functions)
-                   (cons :documentation   librarian-documentation-functions)
-                   (cons :file            librarian-file-functions)
-                   (cons :implementations librarian-implementations-functions)
-                   (cons :references      librarian-references-functions)
-                   (cons :type-definition librarian-type-definition-functions)
+                   (cons :assignments     librarian--doc-assignments-functions)
+                   (cons :definition      librarian--doc-definition-functions)
+                   (cons :declaration     librarian--doc-declaration-functions)
+                   (cons :documentation   librarian--doc-documentation-functions)
+                   (cons :file            librarian--doc-file-functions)
+                   (cons :implementations librarian--doc-implementations-functions)
+                   (cons :references      librarian--doc-references-functions)
+                   (cons :type-definition librarian--doc-type-definition-functions)
                    ))
         )
     (message (format "Lookup Handlers Are:\n%s"
@@ -140,26 +156,10 @@
     )
   )
 
-(defun librarian-url (&optional url &rest args)
-  " use librarian to open a url, in place of `browse-url`' "
-  (interactive)
-  (let ((url (cond (url url)
-                   ((and (boundp 'evil-state) (eq evil-state 'visual))
-                    (buffer-substring-no-properties evil-visual-beginning evil-visual-end))
-                   (t nil)))
-        )
-    (cond ((not url)
-           (librarian-online-select))
-          ((f-exists? url)
-           (shell-command (format "open %s" url)))
-          (t
-           (call-interactively #'librarian-online) ;;TODO
-           )
-          )
-    )
-  )
-
-(defalias 'librarian-docset-install #'counsel-dash-install-docset)
-
 (provide 'librarian)
 ;;; librarian.el ends here
+;; Local Variables:
+;; read-symbol-shorthands: (
+;; ("lib-" . "librarian-")
+;; )
+;; End:
