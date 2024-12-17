@@ -371,12 +371,7 @@ Then move the pdfs of the entry to the canonical location
   (interactive)
   (unless (save-selected-window (other-window 1) (eq major-mode 'bibtex-mode))
     (user-error "Other Window Is Not a Bibtex Buffer"))
-  (save-excursion
-    (let ((start (bibtex-beginning-of-entry))
-          (end (bibtex-end-of-entry)))
-      (copy-region-as-kill start end)
-      )
-    )
+  (save-excursion (lib-u-copy-entry))
   (save-selected-window (other-window 1)
                         (end-of-buffer)
                         (newline-and-indent)
@@ -433,5 +428,6 @@ Then move the pdfs of the entry to the canonical location
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lib-" . "librarian--biblio-")
+;; ("lib-u-" . "librarian--biblio-util-")
 ;; )
 ;; End:

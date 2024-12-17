@@ -11,7 +11,73 @@
   (require 'bibtex)
   )
 
-(defun +jg-bibtex-edit-entry-type ()
+(defvar lib-indent-equals-column 14)
+
+(defvar lib-fill-column 50000)
+
+(defvar lib-helm-candidates nil)
+
+(defvar lib-candidates-names '())
+
+(defvar lib-rand-log ".emacs_rand_bib_log")
+
+(defvar lib-open-doi-with-pdf        nil)
+
+(defvar lib-open-url-with-pdf        nil)
+
+(defvar lib-todo-loc            (expand-file-name "~/github/bibliography/in_progress/todo.bib"))
+
+(defvar lib-loc-completions     (expand-file-name "~/github/bibliography/completions/"))
+
+(defvar lib-loc-export-bib-file (expand-file-name "tex-config/tex/export_template.tex" templates-loc))
+
+(defvar lib-loc-temp-dir        (expand-file-name "~/.tex/"))
+
+(defvar lib-in-progress-files-locs (expand-file-name "/media/john/data/todo/pdfs/"))
+
+(defvar lib-search-fields               '("tags" "year" "publisher"))
+
+(defvar lib-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
+
+(defvar lib-scholar-search-fields-exact '("title"))
+
+(defvar lib-doi-url               "https://doi.org/%s")
+
+(defvar lib-completion-display-formats
+      '(
+        (judicial . "${=has-pdf=:1} ${=type=:10} || ${year:4} || ${author:20} || ${short_parties:80} || ${tags:*}")
+        (review   . "${=has-pdf=:1} REVIEW     || ${year:4} || ${author:20} || REVIEW ${title:73} || ${tags:*}")
+        (online   . "${=has-pdf=:1} ${=type=:10} || ${year:4} || ${author:20} || ${title:80} || ${tags:*}")
+        (t        . "${=has-pdf=:1} ${=type=:10} || ${year:4} || ${author:20} || ${title:80} || ${tags:*}")
+        ;; (t     . ("${author:20} || ${title:*} || ${year:4}" 40))
+        ;; (t     . "${author:35} ${title:*} ${year:4} ${=has-pdf=:1}${=has-note=:1} ${=type=:7}")
+        )
+      "Display formats for the ivy bibtex. see bibtex-completion-display-formats"
+      )
+
+(setq bibtex-completion-display-formats lib-completion-display-formats)
+
+(defvar lib-pdf-loc-regexp               (format "file[[:digit:]]*\s*=\s*{\\(.+\\)/\\(.+%s\\)?"
+                                                       (pcase system-type
+                                                         ('darwin "pdf_library")
+                                                         ('gnu/linux "pdfs")
+                                                         )))
+
+(defvar lib-pdf-replace-match-string     "~/")
+
+(defvar lib-pdf-replace-library-string   (pcase system-type
+                                                 ('darwin "pdf_library")
+                                                 ('gnu/linux "pdfs")))
+
+(defvar lib-remove-field-newlines-regexp "^=")
+
+(defvar lib-curl-cmd      "curl")
+
+(defvar lib-curl-args     '("-sLI" "--connect-timeout" "3"))
+
+(defvar bibtex-completion-pdf-open-function 'browse-url)
+
+(defun lib-edit-entry-type ()
   " Edit the @type of a bibtex entry, using
 bibtex-BibTeX-entry-alist for completion options "
   (interactive)
@@ -27,7 +93,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun +jg-bibtex-copy-entry ()
+(defun lib-copy-entry ()
   " Copy the entire entry under point "
   (interactive)
   (save-excursion
@@ -38,20 +104,20 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun +jg-bibtex-copy-key ()
+(defun lib-copy-key ()
   " Copy the cite key of the entry under point "
   (interactive)
   (kill-new (bibtex-completion-get-key-bibtex))
   (message "Copied Key: %s" (current-kill 0 t))
   )
 
-(defun +jg-bibtex-copy-title ()
+(defun lib-copy-title ()
   (interactive)
   (kill-new (bibtex-autokey-get-field "title"))
   (message "Copied Title: %s" (current-kill 0 t))
   )
 
-(defun +jg-bibtex-copy-field ()
+(defun lib-copy-field ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -62,7 +128,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun +jg-bibtex-quickswap ()
+(defun lib-quickswap ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -74,15 +140,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun +jg-bibtex-clean-error-move-toggle ()
-  (interactive)
-  (setq jg-bibtex-clean-move-entry-on-fail (not jg-bibtex-clean-move-entry-on-fail))
-  (message "Error on clean entry %s move to end of file" (if jg-bibtex-clean-move-entry-on-fail
-                                                             "will"
-                                                           "will not"))
-  )
-
-(defun +jg-bibtex-rename-file ()
+(defun lib-rename-file ()
   " Rename the file associated with the record "
   (interactive)
   (bibtex-beginning-of-entry)
@@ -102,29 +160,29 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun +jg-bibtex-dired-unify-pdf-locations ()
+(defun lib-dired-unify-pdf-locations ()
   "Unify bibtex pdf paths of marked files"
   (interactive)
-  (seq-each '+jg-bibtex-unify-pdf-locations-in-file (dired-get-marked-files))
+  (seq-each 'lib-unify-pdf-locations-in-file (dired-get-marked-files))
   )
 
-(defun +jg-bibtex-unify-pdf-locations-in-file (name)
+(defun lib-unify-pdf-locations-in-file (name)
   "Change all pdf locations in bibtex file to relative,
 ensuring they work across machines "
   (message "Unifying Locations in %s" name)
   (with-temp-buffer
     (insert-file-contents name t)
     (goto-char (point-min))
-    (while (re-search-forward jg-bibtex-pdf-loc-regexp nil t)
-      (replace-match jg-bibtex-pdf-replace-match-string nil nil nil 1)
+    (while (re-search-forward lib-pdf-loc-regexp nil t)
+      (replace-match lib-pdf-replace-match-string nil nil nil 1)
       (when (eq 6 (length (match-data)))
-        (replace-match jg-bibtex-pdf-replace-library-string t nil nil 2))
+        (replace-match lib-pdf-replace-library-string t nil nil 2))
       )
     (write-file name)
     )
   )
 
-(defun +jg-bibtex-swap-editor-author ()
+(defun lib-swap-editor-author ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -150,7 +208,7 @@ ensuring they work across machines "
     )
   )
 
-(defun +jg-bibtex-swap-booktitle-journal ()
+(defun lib-swap-booktitle-journal ()
   (interactive)
     (save-excursion
     (bibtex-beginning-of-entry)
@@ -176,7 +234,7 @@ ensuring they work across machines "
     )
   )
 
-(defun +jg-bibtex-open-pdf (&optional path)
+(defun lib-open-pdf (&optional path)
   "Open pdf for a bibtex entry, if it exists.
 assumes point is in
 the entry of interest in the bibfile.  but does not check that."
@@ -193,28 +251,28 @@ the entry of interest in the bibfile.  but does not check that."
             (t (call-process "open" nil nil nil target))
             )
 
-      (when jg-bibtex-open-doi-with-pdf
-          (+jg-bibtex-open-doi))
-      (when jg-bibtex-open-url-with-pdf
-          (+jg-bibtex-open-url))
+      (when lib-open-doi-with-pdf
+          (lib-open-doi))
+      (when lib-open-url-with-pdf
+          (lib-open-url))
       )))
 
-(defun +jg-bibtex-open-url ()
+(defun lib-open-url ()
   " Open the current entry's url in browser "
   (interactive)
   (when (bibtex-text-in-field "url")
     (browse-url (bibtex-text-in-field "url")))
   )
 
-(defun +jg-bibtex-open-doi ()
+(defun lib-open-doi ()
   " Follow the doi link of the current entry in a browser "
   (interactive)
   (when (bibtex-text-in-field "doi")
-    (browse-url (format jg-bibtex-doi-url (bibtex-text-in-field "doi")))
+    (browse-url (format lib-doi-url (bibtex-text-in-field "doi")))
     )
   )
 
-(defun +jg-bibtex-open-folder ()
+(defun lib-open-folder ()
   " Open the associated file's folder in finder "
   (interactive)
   (let* ((target (bibtex-autokey-get-field '("file" "OPTfile"))))
@@ -225,16 +283,16 @@ the entry of interest in the bibfile.  but does not check that."
     )
   )
 
-(defun +jg-bibtex-load-random ()
+(defun lib-load-random ()
   " Run in a bibtex file, opens a random entry externally,
       and logs it has been opened in a separate file.
 
-Log into jg-bibtex-rand-log.
+Log into lib-rand-log.
  "
   (interactive)
   (widen)
   (let* ((location (f-dirname (buffer-file-name)))
-         (log_file (f-join location jg-bibtex-rand-log))
+         (log_file (f-join location lib-rand-log))
          (log_hash (if (f-exists? log_file)
                        (with-temp-buffer
                          (insert-file-contents log_file)
@@ -258,7 +316,7 @@ Log into jg-bibtex-rand-log.
             (write-region "\n" nil log_file 'append)
             (bibtex-narrow-to-entry)
             (goto-char (point-min))
-            (+jg-bibtex-open-pdf)
+            (lib-open-pdf)
             (setq entry nil)
             )
           )
@@ -267,7 +325,7 @@ Log into jg-bibtex-rand-log.
     )
   )
 
-(defun +jg-bibtex-quicklook-pdf ()
+(defun lib-quicklook-pdf ()
   "Open pdf for a bibtex entry, if it exists.
 assumes point is in
 the entry of interest in the bibfile.  but does not check that."
@@ -278,7 +336,7 @@ the entry of interest in the bibfile.  but does not check that."
       (browse-url target 'quicklook)
       )))
 
-(defun +jg-bibtex-use-newest-file ()
+(defun lib-use-newest-file ()
   "Get the newest pdf or epub from the downloads dir,
 copy it to the bib todo directory,
 and insert it into the current entry "
@@ -296,41 +354,19 @@ and insert it into the current entry "
     (unless newest
       (user-error "No Applicable File Found")
       )
-    (when (f-exists? (f-join jg-bibtex-in-progress-files-locs (f-filename newest)))
+    (when (f-exists? (f-join lib-in-progress-files-locs (f-filename newest)))
       (use-error "File already exists in todo directory: %s" newest)
       )
     (message "Newest: %s" newest)
-    (f-move newest (f-join jg-bibtex-in-progress-files-locs (f-filename newest)))
+    (f-move newest (f-join lib-in-progress-files-locs (f-filename newest)))
     (bibtex-beginning-of-entry)
     (save-excursion
-      (bibtex-set-field "file" (f-join jg-bibtex-in-progress-files-locs (f-filename newest)))
+      (bibtex-set-field "file" (f-join lib-in-progress-files-locs (f-filename newest)))
       )
     )
 )
 
-(defun +jg-bibtex-cleanup-ensure-newline-before-def ()
-  (while (re-search-forward "\\(\n\\)\\(@.+?{.+?,\\)$" nil t)
-    (goto-char (match-end 1))
-    (insert "\n")
-    (goto-char (match-end 0))
-    )
-  )
-
-(defun +jg-bibtex-cleanup-sort-entry ()
-  "Use org-ref-sort-bibtex-entry, but narrowed to the entry"
-  (interactive)
-  (save-restriction
-    (narrow-to-defun)
-    (condition-case err
-        (org-ref-sort-bibtex-entry)
-      (error (message "Error: %s" err))
-      )
-    (bibtex-beginning-of-entry)
-    (org-ref-clean-bibtex-entry)
-    )
-  )
-
-(defun +jg-bibtex-kill-entry-key ()
+(defun lib-kill-entry-key ()
   (interactive)
   (bibtex-beginning-of-entry)
   (let ((key (bibtex-completion-get-key-bibtex)))
@@ -342,7 +378,7 @@ and insert it into the current entry "
     )
   )
 
-(defun +jg-bibtex-lock-key ()
+(defun lib-lock-key ()
   (interactive)
   (bibtex-beginning-of-entry)
   (let ((key (bibtex-completion-get-key-bibtex)))
@@ -354,9 +390,9 @@ and insert it into the current entry "
     )
   )
 
-(defun +jg-bibtex-subcite ()
+(defun lib-subcite ()
   (interactive)
-  (+jg-bibtex-lock-key)
+  (lib-lock-key)
   (bibtex-beginning-of-entry)
   (let* ((entry (bibtex-parse-entry))
          (key (alist-get "=key=" entry nil nil #'s-equals?))
@@ -371,20 +407,20 @@ and insert it into the current entry "
     (bibtex-end-of-entry)
     (insert "\n\n")
     (insert cite-type)
-    (insert (format "{%s%s,\n" jg-bibtex-default-stubkey-base (random 5000)))
+    (insert (format "{%s%s,\n" lib-default-stubkey-base (random 5000)))
     (insert "year = " year ",\n")
     (insert "crossref = {" key "},\n")
     (insert "title = {},\n")
     (insert "author = {},\n")
     (insert "}")
     (bibtex-beginning-of-entry)
-    (+jg-bibtex-edit-field "title")
-    (+jg-bibtex-edit-field "author")
-    (+jg-bibtex-edit-field "pages")
+    (lib-edit-field "title")
+    (lib-edit-field "author")
+    (lib-edit-field "pages")
     )
   )
 
-(defun +jg-bibtex-title-case (x)
+(defun lib-title-case (x)
   "Split a string into separated words, and capitalise the first letter of each
 before rejoining "
   (let* ((case-fold-search nil)
@@ -417,26 +453,26 @@ before rejoining "
     )
   )
 
-(defun +jg-bibtex-toggle-doi-load ()
+(defun lib-toggle-doi-load ()
   (interactive)
-  (setq jg-bibtex-open-doi-with-pdf (not jg-bibtex-open-doi-with-pdf))
-  (message "Open DOI on pdf? %s" jg-bibtex-open-doi-with-pdf)
+  (setq lib-open-doi-with-pdf (not lib-open-doi-with-pdf))
+  (message "Open DOI on pdf? %s" lib-open-doi-with-pdf)
   )
 
-(defun +jg-bibtex-toggle-url-load ()
+(defun lib-toggle-url-load ()
   (interactive)
-  (setq jg-bibtex-open-url-with-pdf (not jg-bibtex-open-url-with-pdf))
-  (message "Open URL on pdf? %s" jg-bibtex-open-url-with-pdf)
+  (setq lib-open-url-with-pdf (not lib-open-url-with-pdf))
+  (message "Open URL on pdf? %s" lib-open-url-with-pdf)
   )
 
-(defun +jg-bibtex-visual-select-entry ()
+(defun lib-visual-select-entry ()
   " Evil visual select the current entry "
   (interactive)
   (evil-visual-make-region (bibtex-beginning-of-entry)
                            (bibtex-end-of-entry))
 )
 
-(defun +jg-bibtex-goto-crossref-entry ()
+(defun lib-goto-crossref-entry ()
   " Follow the crossref field in the entry "
   (interactive)
   (when (bibtex-text-in-field "crossref")
@@ -444,13 +480,13 @@ before rejoining "
     )
   )
 
-(defun +jg-bibtex-google-scholar (arg)
+(defun lib-google-scholar (arg)
   "Open the bibtex entry at point in google-scholar by its doi.
 With arg, searchs the dplp instead.
 "
   (interactive "P")
-  (let* ((search-texts (mapcar #'bibtex-autokey-get-field jg-bibtex-scholar-search-fields))
-         (exact-texts  (mapcar #'bibtex-autokey-get-field jg-bibtex-scholar-search-fields-exact))
+  (let* ((search-texts (mapcar #'bibtex-autokey-get-field lib-scholar-search-fields))
+         (exact-texts  (mapcar #'bibtex-autokey-get-field lib-scholar-search-fields-exact))
          (exact-string (s-join " " (mapcar #'(lambda (x) (format "\"%s\"" x))
                                            (-filter #'(lambda (x) (not (string-empty-p x))) exact-texts))))
          (all-terms (s-concat exact-string " " (s-join " " search-texts)))
@@ -460,7 +496,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-lookup-orcid (arg)
+(defun lib-lookup-orcid (arg)
   (interactive "P")
   (let* ((fields (split-string (bibtex-autokey-get-field '("author" "editor")) " and " t " +"))
          (chosen (ivy-read "Search For: " fields))
@@ -470,7 +506,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-window-set-downloads ()
+(defun lib-window-set-downloads ()
   (interactive)
   (let* ((top-wind (split-window-right))
          (bot-wind (with-selected-window top-wind
@@ -485,7 +521,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-window-set-dropbox()
+(defun lib-window-set-dropbox()
   (interactive)
   (let* ((top-wind (split-window-right))
          (bot-wind (with-selected-window top-wind
@@ -500,7 +536,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-window-file-folder ()
+(defun lib-window-file-folder ()
   " Find the folder in which the entry's associated file exists "
   (interactive)
   (let* ((target (bibtex-autokey-get-field '("file" "OPTfile"))))
@@ -514,30 +550,30 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-window-dwim ()
+(defun lib-window-dwim ()
   (interactive)
   (let ((entry-start (save-excursion (bibtex-beginning-of-entry) (point)))
         (entry-end (save-excursion (bibtex-end-of-entry) (point)))
         )
     (if (and (<= entry-start (point))
              (<= (point) entry-end))
-        (unless (+jg-bibtex-window-file-folder)
-          (+jg-bibtex-window-set-downloads))
-      (+jg-bibtex-window-set-downloads))
+        (unless (lib-window-file-folder)
+          (lib-window-set-downloads))
+      (lib-window-set-downloads))
     )
   )
 
-(defun +jg-bibtex-sort-buffer-by-year ()
+(defun lib-sort-buffer-by-year ()
   (interactive)
   (let ((bibtex-autokey-year-length 4)
         (bibtex-maintain-sorted-entries (list
-                                         #'(lambda () (string-to-number (+jg-bibtex-autokey-get-year)))
+                                         #'(lambda () (string-to-number (lib-autokey-get-year)))
                                          #'<)))
     (bibtex-sort-buffer)
     )
   )
 
-(defun +jg-bibtex-sort-buffer-by-type ()
+(defun lib-sort-buffer-by-type ()
   (interactive)
   (let ((bibtex-autokey-year-length 4)
         (bibtex-maintain-sorted-entries 'entry-class)
@@ -546,7 +582,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun +jg-bibtex-autokey-get-year ()
+(defun lib-autokey-get-year ()
   "Return year field contents as a string obeying `bibtex-autokey-year-length'."
   (let* ((str (bibtex-autokey-get-field '("date" "year"))) ; possibly ""
          (year (or (and (iso8601-valid-p str)

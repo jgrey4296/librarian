@@ -9,11 +9,11 @@
 
 (describe "title case"
   (it "should behave by some rules"
-    (expect (+jg-bibtex-title-case "this is a test") :to-be "This Is A Test" )
-    (expect (+jg-bibtex-title-case "This Is A Test") :to-be "This Is A Test" )
-    (expect (+jg-bibtex-title-case "Why Aren’t We Talking About Trump’s Fascism?") :to-be "Why Aren’t We Talking About Trump’s Fascism?" )
-    (expect (+jg-bibtex-title-case "Why Aren't We Talking About Trump’s Fascism?") :to-be "Why Aren't We Talking About Trump’s Fascism?" )
-    (expect (+jg-bibtex-title-case "Why Aren't 'We blah' Talking About Trump’s Fascism?") :to-be "Why Aren't 'we Blah' Talking About Trump’s Fascism?" )jk:W
+    (expect (lib-title-case "this is a test") :to-be "This Is A Test" )
+    (expect (lib-title-case "This Is A Test") :to-be "This Is A Test" )
+    (expect (lib-title-case "Why Aren’t We Talking About Trump’s Fascism?") :to-be "Why Aren’t We Talking About Trump’s Fascism?" )
+    (expect (lib-title-case "Why Aren't We Talking About Trump’s Fascism?") :to-be "Why Aren't We Talking About Trump’s Fascism?" )
+    (expect (lib-title-case "Why Aren't 'We blah' Talking About Trump’s Fascism?") :to-be "Why Aren't 'we Blah' Talking About Trump’s Fascism?" )jk:W
     )
   )
 
@@ -37,7 +37,7 @@
 ;;-- end Footer
 ;; Local Variables:
 ;; read-symbol-shorthands: (
-;; ("blah-" . "blah-")
+;; ("lib-" . "librarian--biblio-util-")
 ;; )
 ;; End:
 ;;; test-biblio-bc.el ends here
