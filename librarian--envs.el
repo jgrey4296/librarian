@@ -36,8 +36,12 @@
 (cl-defstruct (lenv-handler)
   " An environment handler.
 describes the language it handles,
-its hooks
-how to describe itself in the modeline
+its callbacks,
+and how to describe itself in the modeline
+
+Callbacks (setup, start, stop, teardown) are of the form:
+(lambda (state &rest rest) ...),
+where rest are the data values  read from the relevant line in a .lenv file
 "
   (id       nil     :type 'symbol           :read-only t)
   (lang     nil     :type 'str              :read-only t)
@@ -208,8 +212,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
                                    (car vals)
                                    loc
                                    (cdr vals))
-                          )
-          )
+                          ))
     (prog1
         (cl-loop for state in states
                  for valid              = (and state (lenv-state-p state) (not (lenv-state-locked state)))
@@ -217,12 +220,12 @@ pass a prefix arg to use ivy to manually select from registered handlers
                  when valid for handler = (lenv-get-handler (lenv-state-id state))
                  when (and valid handler (eq status 'nil)) do
                  ;; run setup and set modeline
-                 (--if-let (lenv-handler-setup handler)    (apply it (lenv-state-data state)))
+                 (--if-let (lenv-handler-setup handler)    (apply it state (lenv-state-data state)))
                  (--if-let (lenv-handler-modeline handler) (add-to-list 'global-mode-string it))
                  (setf (lenv-state-status state) 'setup)
                  when (and valid handler) do
                  ;; run start
-                 (--if-let (lenv-handler-start handler)    (apply it (lenv-state-data state)))
+                 (--if-let (lenv-handler-start handler)    (apply it state (lenv-state-data state)))
                  (setf (lenv-state-status state) 'active)
                  ;; collect them to return
                  when (and valid (eq (lenv-state-status state) 'active)) collect state
@@ -258,12 +261,12 @@ pass a prefix arg to use ivy to manually select from registered handlers
              ;; or Deactivate
              when (eq status 'active) do
              (let ((handler (lenv-get-handler (lenv-state-id state))))
-               (--if-let (lenv-handler-stop handler)     (apply it (lenv-state-data state))))
+               (--if-let (lenv-handler-stop handler)     (apply it state (lenv-state-data state))))
              (setf (lenv-state-status state) 'setup)
              ;; Teardown
              when (eq status 'setup) do
              (let ((handler (lenv-get-handler (lenv-state-id state))))
-               (--if-let (lenv-handler-teardown handler) (apply it (lenv-state-data state))))
+               (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state))))
              (setf (lenv-state-status state) nil)
              when valid collect state
              )
@@ -301,6 +304,12 @@ pass a prefix arg to use ivy to manually select from registered handlers
              (princ ":PROPERTIES:\n")
              ;; TODO properties
              (princ ":END:\n")
+             )
+    (princ "\n* Registered Environment Handlers:\n")
+    (cl-loop for id being the hash-keys of lenv-registered
+             using (hash-values handler)
+             do
+             (princ (format "** %s: \n" id))
              )
     )
   (with-current-buffer "*Envs Report*"
