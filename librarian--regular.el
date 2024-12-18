@@ -30,43 +30,48 @@
   (require 'f)
   )
 
-(defconst lir--splitter "#")
+(defconst lib-splitter "#")
 
-(defvar lir-cache (make-hash-table))
+(defvar lib-cache (make-hash-table))
 
-(defvar lir-location nil)
+(defvar lib-location nil)
 
-(defvar-local lir-targets nil)
+(defvar-local lib-targets nil)
 
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
-files of urls in lir-location "
+files of urls in lib-location,
+Use librarian-regular-go to choose one of those urls and jump to it
+ "
   :init-value nil
-  :lighter "librarian-regular"
+  :lighter "lib-regular"
   ;; :global t
   :keymap nil
-  (setq-local lir-targets
+  (if (or (not lib-location) (not (f-exists? lib-location)))
+      (message "Lib-Regular location doesn't exist: %s" lib-location))
+  (setq-local lib-targets
               ;; Loop for each active mode
               (cl-remove-duplicates
                (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                        for source-exists = (f-exists? (f-join lir-location (symbol-name mode)))
-                        when (and source-exists (not (gethash mode lir-cache)))
+                        for source-exists = (and lib-location (f-exists? (f-join lib-location (symbol-name mode))))
+                        when (and source-exists (not (gethash mode lib-cache)))
                         do ;; load the source file
-                        (puthash mode (lir--load-file (f-join lir-location (symbol-name mode))) lir-cache)
+                        (puthash mode (lib--load-file (f-join lib-location (symbol-name mode))) lib-cache)
                         ;; and construct the result list
-                        when source-exists append (gethash mode lir-cache)
+                        when source-exists append (gethash mode lib-cache)
                         )
                :test #'equal)
               )
   )
 
-(defun lir--load-file (file)
+(defun lib--load-file (file)
   "read a list of (name . url) from the given file"
+  (cl-assert (f-exists? file) t "Lib-Regular Load File Check")
   (let (targets)
     (with-temp-buffer
       (insert-file-contents file)
       (mapc #'(lambda (x)
-                (-when-let (vals (split-string x lir--splitter t " +"))
+                (-when-let (vals (split-string x lib-splitter t " +"))
                   (push (cons (car vals) (cadr vals)) targets)
                   ))
             (s-lines (buffer-substring-no-properties (point-min) (point-max)))
@@ -76,18 +81,21 @@ files of urls in lir-location "
     )
   )
 
-(defun lir-minor-mode/turn-on ()
+(defun lib-minor-mode/turn-on ()
   (unless (minibufferp)
     (librarian-regular-minor-mode 1))
   )
 
-(define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode lir-minor-mode/turn-on)
+(define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode lib-minor-mode/turn-on)
 
-(defun librarian-regular-go ()
+(defun lib-go ()
   " suggest a list of regular urls to browse to "
   (interactive)
+  (unless librarian-regular-minor-mode
+    (user-error "Lib-Regular Mode isn't Active")
+    )
   (ivy-read "Lookup: "
-            lir-targets
+            lib-targets
             :require-match t
             :sort t
             ;; TODO use browse handler
@@ -95,16 +103,27 @@ files of urls in lir-location "
             )
 )
 
-(defun librarian-regular-clear ()
+(defun lib-clear ()
   " Clear the cache of librarian-regular "
   (interactive)
-  (clrhash lir-cache)
+  (clrhash lib-cache)
   )
+
+;;;; Public Aliases
+
+;;;###autoload
+(defalias 'librarian-regular-go! #'librarian--regular-go)
+
+;;;###autoload
+(defalias 'librarian-regular-clear #'librarian--regular-clear)
+
+;;;###autoload
+(defvaralias 'librarian-regular-loc 'librarian--regular-location)
 
 (provide 'librarian--regular)
 ;;; librarian-regular.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
-;; ("lir-" . "librarian--regular-")
+;; ("lib-" . "librarian--regular-")
 ;; )
 ;; End:

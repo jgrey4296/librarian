@@ -266,23 +266,27 @@ returns the list of tags extracted
   "Rebuild the tag database from lit-mode-main-loc"
   (interactive)
   (clrhash lit-mode-global-tags)
-  (cond ((not (f-exists? lit-mode-main-loc))
-         (error "ERROR: GLOBAL-TAGS-LOCATION IS EMPTY")
-         )
+  (cond ((not lit-mode-main-loc)
+         (message "no tags location is specified"))
+        ((not (f-exists? lit-mode-main-loc))
+         (message "tags location does not exist : %s" lit-mode-main-loc))
         ((f-dir? lit-mode-main-loc)
          (let ((files (f-entries lit-mode-main-loc
                                  (-rpartial 'f-ext? "sub")
                                  t)))
-           (message "Got Dir")
+           (message "Tags location is a directory, reading files")
            (cl-loop for file in files
                     do
                     (litm-parse-tag-file file))
            ))
         ((f-file? lit-mode-main-loc)
          (litm-parse-tag-file lit-mode-main-loc))
-        (t (message "ERROR: GLOBAL-TAGS-LOCATION IS EMPTY"))
+        (t (error "Unkown tag rebuild state"))
         )
   )
+
+
+;; Public Aliases
 
 (provide 'librarian--tag)
 ;;; librarian-tag-mode.el ends here

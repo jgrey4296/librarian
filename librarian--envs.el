@@ -15,7 +15,6 @@
 
 (defvar lenv-registered (make-hash-table) "Mapping of env names to their structs")
 
-;;;###autoload
 (defvar lenv-marker ".lenvs"
   "Marker files librarian will look for to determine the librarian-environment"
   )
@@ -79,7 +78,7 @@ Either a librarian--envs-handler, or a plist to build one
          (id (lenv-handler-id new-handler))
          )
     (if (gethash id lenv-registered)
-        (user-error "A Handler has already been registered with the name: %s" id)
+        (message "A Handler has already been registered with the name: %s" id)
       (puthash id new-handler lenv-registered)
       )
     )
@@ -298,7 +297,10 @@ pass a prefix arg to use ivy to manually select from registered handlers
              using (hash-values state)
              for handler = (lenv-get-handler id)
              do
-             (princ (format "** %s\n" id))
+             (princ (format "** %s : (activation: %s)\n" id (lenv-state-status state)))
+             (princ ":PROPERTIES:\n")
+             ;; TODO properties
+             (princ ":END:\n")
              )
     )
   (with-current-buffer "*Envs Report*"
@@ -323,6 +325,12 @@ pass a prefix arg to use ivy to manually select from registered handlers
 
 ;;;###autoload
 (defalias 'librarian-envs-report!      #'librarian--envs-report)
+
+;;;###autoload
+(defalias 'librarian-envs-register! #'librarian--envs-register)
+
+;;;###autoload
+(defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 
 ;;;###autoload
 (defvaralias 'librarian-envs-enter-hook 'librarian--envs-enter-hook)

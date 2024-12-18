@@ -67,6 +67,11 @@ after `browse-url-handlers` have processed the url
   ;; (lib-regain-focus)
   )
 
+;;; Public Aliases
+
+;;;###autoload
+(defalias 'librarian-browse-open #'librarian--browse-open-url)
+
 (provide 'librarian--browse)
 ;; Local Variables:
 ;; read-symbol-shorthands: (
