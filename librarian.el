@@ -76,6 +76,7 @@
 (require 'lib--tag)
 (require 'lib--tag-chart)
 (require 'lib--words)
+(require 'lib--insert)
 
 (librarian--doc-init-defaults)
 (defconst lib-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
