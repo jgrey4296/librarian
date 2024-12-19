@@ -23,42 +23,6 @@
 ;;; Code:
 ;;-- end header
 
-(eval-when-compile
-  (require 'f)
-  (require 'cl-lib)
-  (require 's)
-  (require 'dash)
-
-  (require 'evil-core)
-  (require 'evil-common)
-  (require 'thingatpt)
-  (require 'eldoc)
-  (require 'ivy)
-  (require 'counsel)
-  (require 'eww)
-  (require 'bibtex)
-  (require 'bibtex-completion)
-  (require 'org-ref-bibtex)
-
-  (require 'synosaurus)
-  (require 'powerthesaurus nil t)
-  (require 'wordnut)
-  (when (eq system-type 'darwin) (require 'osx-dictionary))
-  (require 'define-word nil t)
-  (require 'helm-wordnet)
-
-  (require 'better-jumper)
-  (require 'browse-url)
-  (require 'counsel-dash)
-
-  (require 'free-keys)
-  (require 'helpful)
-  (require 'xref)
-  (require 'browse-url)
-  (require 'dash-docs)
-  (require 'counsel-dash)
-  )
-
 (require 'lib--util)
 (require 'lib--backend)
 (require 'lib--structs)
@@ -87,6 +51,7 @@
 
 (evil-make-intercept-map lib-mode-map 'normal)
 
+;;;###autoload (autoload 'librarian-minor-mode "librarian")
 (define-minor-mode lib-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :lighter (:eval (format "Browser: %s" librarian-default-browser))
@@ -101,6 +66,7 @@
     )
   )
 
+;;;###autoload
 (define-globalized-minor-mode global-librarian-mode librarian-mode librarian-mode/turn-on
   (message "Librarian: %s" global-librarian-mode)
   (if global-librarian-mode
@@ -156,6 +122,9 @@
              )
     )
   )
+
+(advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-refs)
+
 
 (provide 'librarian)
 ;;; librarian.el ends here

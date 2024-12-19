@@ -33,6 +33,9 @@
 ;;-- end vars
 
 ;;-- structs
+;;;###autoload (defalias 'librarian-envs-handler-p #'librarian--envs-handler-p)
+;;;###autoload (autoload 'librarian-envs-handler-p "librarian--envs")
+
 (cl-defstruct (lenv-handler)
   " An environment handler.
 describes the language it handles,
@@ -72,6 +75,8 @@ where rest are the data values  read from the relevant line in a .lenv file
   )
 ;;-- end structs
 
+;;;###autoload (defalias 'librarian-envs-register! #'librarian--envs-register)
+;;;###autoload (autoload 'librarian-envs-register! "librarian--envs")
 (defun lenv-register (&rest args)
   " Register a new handler.
 Either a librarian--envs-handler, or a plist to build one
@@ -88,11 +93,13 @@ Either a librarian--envs-handler, or a plist to build one
     )
 )
 
+;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
+;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
 (defun lenv-clear-registry ()
   (interactive)
   (clrhash lenv-registered)
   (clrhash lenv-active)
-  )
+ )
 
 (defun lenv-init-loc (&optional start)
   " return a envs-loc "
@@ -180,6 +187,8 @@ then return the state
     )
   )
 
+;;;###autoload (defalias 'librarian-envs-start! #'librarian--envs-start)
+;;;###autoload (autoload 'librarian--envs-start "librarian--envs")
 (defun lenv-start (arg &rest ids)
   " Main access point for setting up environment.
 Acts as a Dispatch to activate appropriate environment
@@ -236,6 +245,8 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
   )
 
+;;;###autoload (defalias 'librarian-envs-stop! #'librarian--envs-stop)
+;;;###autoload (autoload 'librarian--envs-stop "librarian--envs")
 (defun lenv-stop (arg &rest ids)
   (interactive)
   (let ((loc (lenv-init-loc))
@@ -273,6 +284,8 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
   )
 
+;;;###autoload (defalias 'librarian-envs-toggle-lock! #'librarian--envs-toggle-lock)
+;;;###autoload (autoload 'librarian--envs-toggle-lock "librarian--envs")
 (defun lenv-toggle-lock (&rest rest)
   "Toggle whether the environment can be changed or not"
   (interactive)
@@ -291,6 +304,8 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
   )
 
+;;;###autoload (defalias 'librarian-envs-report! #'librarian--envs-report)
+;;;###autoload (autoload 'librarian--envs-report "librarian--envs")
 (defun lenv-report ()
   "Display a report of all registered environments, and which are activated "
   (interactive)
@@ -318,46 +333,6 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
 )
 
-;; Public aliases
-
-;;;###autoload
-(defalias 'librarian-envs-handler-p    #'librarian--envs-handler-p)
-
-;;;###autoload
-(defalias 'librarian-envs-start!       #'librarian--envs-start)
-
-;;;###autoload
-(defalias 'librarian-envs-stop!        #'librarian--envs-stop)
-
-;;;###autoload
-(defalias 'librarian-envs-toggle-lock! #'librarian--envs-toggle-lock)
-
-;;;###autoload
-(defalias 'librarian-envs-report!      #'librarian--envs-report)
-
-;;;###autoload
-(defalias 'librarian-envs-register! #'librarian--envs-register)
-
-;;;###autoload
-(defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
-
-;;;###autoload
-(defvaralias 'librarian-envs-enter-hook 'librarian--envs-enter-hook)
-
-;;;###autoload
-(defvaralias 'librarian-envs-exit-hook  'librarian--envs-exit-hook)
-
-;;;###autoload
-(defvaralias 'librarian-envs-active     'librarian--envs-active)
-
-;;;###autoload
-(defvaralias 'librarian-envs-marker     'librarian--envs-marker)
-
-;;;###autoload
-(defvaralias 'librarian-envs-process-name 'librarian--envs-process-name)
-
-;;;###autoload
-(defvaralias 'librarian-envs-buffer-name 'librarian--envs-buffer-name)
 
 (provide 'librarian--envs)
 

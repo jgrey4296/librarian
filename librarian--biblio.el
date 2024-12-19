@@ -13,7 +13,9 @@
   )
 
 (defvar lib-library-loc "" "Where the main bibtex library is located")
+
 (defvar lib-pdf-loc     "" "Where relative file paths are located")
+
 (defvar lib-unsourced-bib-file "" "target unsourced bib file")
 
 (defconst lib-meta-buffer "*Metadata*")
@@ -72,6 +74,8 @@
                           ("category  " . "--category=")
                           ("*Apply*")))
 
+;;;###autoload (defalias 'librarian-biblio-build-file-list #'librarian--biblio-build-list)
+;;;###autoload (autoload 'librarian--biblio-build-list "librarian--biblio")
 (defun lib-build-list ()
   "Build a list of all bibtex files to use for bibtex-helm "
   (interactive)
@@ -92,6 +96,8 @@
         )
     )
 
+;;;###autoload (defalias 'librarian-biblio-get-meta #'librarian--biblio-meta-retrieval)
+;;;###autoload (autoload 'librarian--biblio-meta-retrieval "librarian--biblio")
 (defun lib-meta-retrieval ()
   " Use 'lib-meta-program to retrieve metadata about files in current bibtex entry "
   (interactive)
@@ -186,6 +192,8 @@
     )
   )
 
+;;;###autoload (defalias 'librarian-biblio-set-cover #'librarian--biblio-set-ebook-cover)
+;;;###autoload (autoload 'librarian--biblio-set-ebook-cover "librarian--biblio")
 (defun lib-set-ebook-cover ()
   " Use Calibre's ebook-meta program to select an image and apply it as an epub's cover image "
   (interactive)
@@ -205,6 +213,8 @@
     )
   )
 
+;;;###autoload (defalias 'librarian-biblio-update-entry-from-doi #'librarian--biblio-update-entry)
+;;;###autoload (autoload 'librarian--biblio-update-entry "librarian--biblio")
 (defun lib-update-entry ()
   " Update an entry using the doi's online data "
   (interactive)
@@ -213,6 +223,8 @@
     )
   )
 
+;;;###autoload (defalias 'librarian-biblio-create-from-doi #'librarian--biblio-insert-entry-from-doi)
+;;;###autoload (autoload 'librarian--biblio-insert-entry-from-doi "librarian--biblio")
 (defun lib-insert-entry-from-doi ()
   "Create an entry from a doi"
   (interactive)
@@ -301,6 +313,8 @@ returns the new location
     )
   )
 
+;;;###autoload (defalias 'librarian-biblio-refile-to-canonical #'librarian--biblio-refile-by-year)
+;;;###autoload (autoload 'librarian-biblio-refile-by-year "librarian--biblio")
 (defun lib-refile-by-year ()
   " Kill the current entry and insert it in the appropriate year's bibtex file
 Then move the pdfs of the entry to the canonical location
@@ -329,6 +343,8 @@ Then move the pdfs of the entry to the canonical location
     )
   )
 
+;;;###autoload (defalias 'librarian-biblio-refile-to-unsourced #'librarian--biblio-refile-to-unsourced)
+;;;###autoload (autoload 'librarian--biblio-refile-to-unsourced "librarian--biblio")
 (defun lib-refile-to-unsourced ()
   " Kill the current entry and insert it in the appropriate year's bibtex file "
   (interactive)
@@ -348,6 +364,8 @@ Then move the pdfs of the entry to the canonical location
     )
 )
 
+;;;###autoload (defalias 'librarian-biblio-refile-to-other-window #'librarian--biblio-refile-to-other-window)
+;;;###autoload (autoload 'librarian--biblio-refile-to-other-window "librarian--biblio")
 (defun lib-refile-to-other-window ()
   "Refile the entry under point to the other window"
   (interactive)
@@ -372,35 +390,18 @@ Then move the pdfs of the entry to the canonical location
   )
 
 ;;;; Public Aliases
-;;;###autoload
-(defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
-;;;###autoload
-(defvaralias 'librarian-biblio-program     'librarian--biblio-meta-program)
-;;;###autoload
-(defvaralias 'librarian-bibio-args         'librarian--biblio-meta-opts)
-;;;###autoload
-(defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
-;;;###autoload
-(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
-;;;###autoload
-(defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
 
-;;;###autoload
-(defalias 'librarian-biblio-build-file-list          #'librarian--bibio-build-list)
-;;;###autoload
-(defalias 'librarian-biblio-get-meta                 #'librarian--biblio-meta-retrieval)
-;;;###autoload
-(defalias 'librarian-biblio-set-cover                #'librarian--biblio-set-ebook-cover)
-;;;###autoload
-(defalias 'librarian-biblio-update-entry-from-doi    #'librarian--biblio-update-entry)
-;;;###autoload
-(defalias 'librarian-biblio-create-from-doi          #'librarian--biblio-insert-entry-from-doi)
-;;;###autoload
-(defalias 'librarian-biblio-refile-to-canonical      #'librarian--biblio-refile-by-year)
-;;;###autoload
-(defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
-;;;###autoload
-(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
+(defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
+
+(defvaralias 'librarian-biblio-program     'librarian--biblio-meta-program)
+
+(defvaralias 'librarian-bibio-args         'librarian--biblio-meta-opts)
+
+(defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
+
+(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
+
+(defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
 
 (provide 'librarian--biblio)
 ;;; librarian-bibliography.el ends here

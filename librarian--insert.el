@@ -5,6 +5,7 @@
   (require 'cl-lib)
   (require 'f)
   (require 'ivy)
+  (require 'parent-mode)
   )
 
 (defvar lib-location nil)
@@ -24,6 +25,8 @@
     )
   )
 
+;;;###autoload (defalias 'librarian-insert-clear-caches #'librarian--insert-clear-caches)
+;;;###autoload (autoload 'librarian--insert-clear-caches "librarian--insert")
 (defun lib-clear-caches ()
   "Clear and Rebuild the cache"
   (interactive)
@@ -61,6 +64,8 @@ Splits the result by '#'
   (insert (car (split-string x "#" t " +")))
   )
 
+;;;###autoload (defalias 'librarian-insert-trigger #'librarian--insert-trigger)
+;;;###autoload (autoload 'librarian--insert-trigger "librarian--insert")
 (defun lib-trigger ()
   " Entry ivy for insertions "
   (interactive)
@@ -93,6 +98,8 @@ Splits the result by '#'
     )
   )
 
+;;;###autoload (defalias 'librarian-insert-register-processor #'librarian--insert-register-processor)
+;;;###autoload (autoload 'librarian--insert-register-processor  "librarian--insert")
 (defun lib-register-processor (mode key fn)
     "For a {mode} and a {key} group of inserts in that mode,
 use {fn} to transform the insert value before inserting
@@ -116,6 +123,8 @@ fn is (lambda (str) (insert str))
     )
   )
 
+;;;###autoload (defalias 'librarian-insert-minor-mode #'librarian--insert-minor-mode)
+;;;###autoload (autoload 'librarian--insert-minor-mode "librarian--insert")
 (define-minor-mode lib-minor-mode
   " Generalized insert mode for simple strings"
   :init-value nil
@@ -125,20 +134,7 @@ fn is (lambda (str) (insert str))
 
 ;;; Public Aliases
 
-;;;###autoload
-(defalias 'librarian-insert-minor-mode #'librarian--insert-minor-mode)
-
-;;;###autoload
-(defalias 'librarian-insert-clear-caches #'librarian--insert-clear-caches)
-
-;;;###autoload
-(defalias 'librarian-insert-trigger #'librarian--insert-trigger)
-
-;;;###autoload
-(defalias 'librarian-insert-register-processor #'librarian--insert-register-processor)
-
-;;;###autoload
-(defvaralias 'librarian-insert-loc #'librarian--insert-location)
+(defvaralias 'librarian-insert-loc 'librarian--insert-location)
 
 (provide 'librarian--insert)
 ;; Local Variables:

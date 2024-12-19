@@ -1,5 +1,11 @@
 ;;; librarian-docsets.el -*- lexical-binding: t; -*-
 
+(eval-when-compile
+  (require 'dash-docs)
+  (require 'librarian--util)
+  (require 'counsel-dash)
+  )
+
 (unless (boundp 'dash-docs-docsets)
   (defvar dash-docs-docsets nil))
 
@@ -20,8 +26,9 @@
          (funcall sync cands)))
       (_ (funcall sync action)))))
 
-;;;###autoload
-(defun librarian-docset-consult (arg &optional query docsets)
+;;;###autoload (defalias 'librarian-docsets-consult #'librarian--docsets-consult)
+;;;###autoload (autoload 'librarian--docsets-consult "librarian--docsets")
+(defun lid-consult (arg &optional query docsets)
   "Librarian query relevant docsets
 
 QUERY is a string and docsets in an array of strings, each a name of a Dash
@@ -41,6 +48,7 @@ installed with `dash-docs-install-docset'."
     (counsel-dash query))
 )
 
+;;;###autoload (autoload 'evil-librarian-docset-consult "librarian--docsets")
 (evil-define-command evil-librarian-docset-consult (query &optional bang)
   "Look up QUERY in your dash docsets. If BANG, prompt to select a docset (and
 install it if necessary)."
@@ -52,7 +60,10 @@ install it if necessary)."
         (librarian-install-docset selected)))
     (librarian-docset-consult query selected)))
 
-(defalias 'librarian-docset-install #'counsel-dash-install-docset)
+;;; public aliases
+
+;;;###autoload
+(defalias 'librarian-docsets-install #'counsel-dash-install-docset)
 
 (provide 'librarian--docsets)
 ;; Local Variables:

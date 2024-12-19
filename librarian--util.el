@@ -134,15 +134,13 @@ Display the result
     )
   )
 
-(defun liu--fix-ivy-xrefs (fn fetcher alist)
+(defun liu-fix-ivy-xrefs (fn fetcher alist)
   "HACK Fix #4386: `ivy-xref-show-xrefs' calls `fetcher' twice, which has
   side effects that breaks in some cases (i.e. on `dired-do-find-regexp')."
   (when (functionp fetcher)
     (setf (alist-get 'fetched-xrefs alist)
           (funcall fetcher)))
   (funcall fn fetcher alist))
-
-(advice-add #'ivy-xref-show-xrefs :around #'liu--fix-ivy-refs)
 
 (provide 'librarian--util)
 ;; Local Variables:

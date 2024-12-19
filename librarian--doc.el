@@ -133,6 +133,7 @@
     )
   )
 
+;;;###autoload
 (defun librarian-definition (identifier &optional arg)
   "Jump to the definition of IDENTIFIER (defaults to the symbol at point).
 
@@ -144,11 +145,13 @@ evil-mode is active."
   (lid--go :definition identifier)
   )
 
+;;;###autoload
 (defun librarian-declaration (identifier &optional arg)
   (interactive (list (librarian--util-get) current-prefix-arg))
   (lid--go :declaration identifier)
   )
 
+;;;###autoload
 (defun librarian-implementations (identifier &optional arg)
   "Jump to the implementations of IDENTIFIER (defaults to the symbol at point).
 
@@ -158,6 +161,7 @@ the point or current buffer."
   (lid--go :implementations identifier)
   )
 
+;;;###autoload
 (defun librarian-type-definition (identifier &optional arg)
   "Jump to the type definition of IDENTIFIER (defaults to the symbol at point).
 
@@ -167,6 +171,7 @@ the point or current buffer."
   (lid--go :type-definition identifier)
   )
 
+;;;###autoload
 (defun librarian-references (identifier &optional arg)
   "Show a list of usages of IDENTIFIER (defaults to the symbol at point)
 
@@ -188,11 +193,13 @@ for the current mode/buffer (if any), then falls back to the backends in
   (lid--go :documentation identifier)
   )
 
+;;;###autoload
 (defun librarian-assignments (identifier &optional arg)
   (interactive (list (librarian--util-get) current-prefix-arg))
   (lid--go :assignments identifier #'pop-to-buffer)
   )
 
+;;;###autoload
 (defun librarian-choose (identifier &optional arg)
   (interactive (list (librarian--util-get) current-prefix-arg))
   (let ((handler-sym (intern (ivy-read "Handler Option: " lid-valid-keywords))))
@@ -200,6 +207,7 @@ for the current mode/buffer (if any), then falls back to the backends in
     )
   )
 
+;;;###autoload
 (defun librarian-file (&optional path)
   "Figure out PATH from whatever is at point and open it.
 

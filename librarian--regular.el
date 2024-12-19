@@ -28,6 +28,7 @@
   (require 's)
   (require 'cl-lib)
   (require 'f)
+  (require 'parent-mode)
   )
 
 (defconst lib-splitter "#")
@@ -38,6 +39,7 @@
 
 (defvar-local lib-targets nil)
 
+;;;###autoload
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
 files of urls in lib-location,
@@ -48,20 +50,21 @@ Use librarian-regular-go to choose one of those urls and jump to it
   ;; :global t
   :keymap nil
   (if (or (not lib-location) (not (f-exists? lib-location)))
-      (message "Lib-Regular location doesn't exist: %s" lib-location))
-  (setq-local lib-targets
-              ;; Loop for each active mode
-              (cl-remove-duplicates
-               (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                        for source-exists = (and lib-location (f-exists? (f-join lib-location (symbol-name mode))))
-                        when (and source-exists (not (gethash mode lib-cache)))
-                        do ;; load the source file
-                        (puthash mode (lib--load-file (f-join lib-location (symbol-name mode))) lib-cache)
-                        ;; and construct the result list
-                        when source-exists append (gethash mode lib-cache)
-                        )
-               :test #'equal)
-              )
+      (message "Lib-Regular location doesn't exist: %s" lib-location)
+    (setq-local lib-targets
+                ;; Loop for each active mode
+                (cl-remove-duplicates
+                 (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
+                          for source-exists = (and lib-location (f-exists? (f-join lib-location (symbol-name mode))))
+                          when (and source-exists (not (gethash mode lib-cache)))
+                          do ;; load the source file
+                          (puthash mode (lib--load-file (f-join lib-location (symbol-name mode))) lib-cache)
+                          ;; and construct the result list
+                          when source-exists append (gethash mode lib-cache)
+                          )
+                 :test #'equal)
+                )
+    )
   )
 
 (defun lib--load-file (file)
@@ -86,8 +89,11 @@ Use librarian-regular-go to choose one of those urls and jump to it
     (librarian-regular-minor-mode 1))
   )
 
+;;;###autoload
 (define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode lib-minor-mode/turn-on)
 
+;;;###autoload (defalias 'librarian-regular-go! #'librarian--regular-go)
+;;;###autoload (autoload 'librarian--regular-go "librarian--regular")
 (defun lib-go ()
   " suggest a list of regular urls to browse to "
   (interactive)
@@ -103,6 +109,8 @@ Use librarian-regular-go to choose one of those urls and jump to it
             )
 )
 
+;;;###autoload (defalias 'librarian-regular-clear! #'librarian--regular-clear)
+;;;###autoload (autoload 'librarian--regular-clear "librarian--regular")
 (defun lib-clear ()
   " Clear the cache of librarian-regular "
   (interactive)
@@ -111,13 +119,6 @@ Use librarian-regular-go to choose one of those urls and jump to it
 
 ;;;; Public Aliases
 
-;;;###autoload
-(defalias 'librarian-regular-go! #'librarian--regular-go)
-
-;;;###autoload
-(defalias 'librarian-regular-clear #'librarian--regular-clear)
-
-;;;###autoload
 (defvaralias 'librarian-regular-loc 'librarian--regular-location)
 
 (provide 'librarian--regular)
