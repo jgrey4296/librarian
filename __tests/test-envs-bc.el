@@ -37,7 +37,7 @@
   (it "can check the type"   (expect (lenv-loc-p loc)) :to-be t)
   (it "should have a root"   (expect (lenv-loc-root loc) :to-equal "blah"))
   (it "should have a marker" (expect (lenv-loc-marker loc) :to-equal "bloo"))
-  (it "should be auto-created" (expect (lenv-loc-p (lenv--init-loc)) :to-be t))
+  (it "should be auto-created" (expect (lenv-loc-p (lenv-init-loc)) :to-be t))
 
 )
 
@@ -45,7 +45,7 @@
   ;; Vars:
   :var (
         (hand (make-lenv-handler :id 'from-struct :lang 'lisp))
-        (plist '(:id from-plist :lang py))
+        (plist '(from-plist :lang py))
         )
   ;; Setup
   (before-each (lenv-clear-registry))
@@ -240,6 +240,34 @@
     (expect (lenv-stop nil 'blah) :not :to-be nil)
     )
 )
+
+(describe "handler-fn prep"
+  :var (setup)
+  (before-each
+    (setf (symbol-function 'setup) #'(lambda (&rest data) nil))
+    (spy-on 'setup)
+    )
+  (it "is a sanity test" (expect t :to-be (not nil)))
+  (it "should pass through function symbols"
+    (expect 'setup :not :to-have-been-called)
+    (expect (lenv-prep-function #'setup) :to-be #'setup)
+    (expect (functionp (lenv-prep-function #'setup)) :to-be t)
+    (expect (lenv-prep-function (function setup)) :to-be #'setup)
+    (expect (functionp (lenv-prep-function (function setup))) :to-be t)
+    (expect 'setup :not :to-have-been-called)
+    )
+  (it "should reject non-function symbols"
+    (expect 'setup :not :to-have-been-called)
+    (expect (lenv-prep-function 'default-directory) :to-be nil)
+    (expect 'setup :not :to-have-been-called)
+    )
+  (it "should eval list lambdas"
+    (expect 'setup :not :to-have-been-called)
+    (expect (lenv-prep-function '(function (lambda () (setup)))) :not :to-be nil)
+    (expect (functionp (lenv-prep-function '(function (lambda () (setup))))) :to-be t)
+    (expect 'setup :not :to-have-been-called)
+    )
+  )
 
 ;;-- Footer
 ;; Copyright (C) 2024 john

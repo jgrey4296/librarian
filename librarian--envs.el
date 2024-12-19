@@ -8,6 +8,12 @@
 ;;-- end header
 
 ;;-- vars
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'dash)
+  (require 'f)
+  (require 's)
+  )
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
 
@@ -28,7 +34,7 @@
   "The buffer librarian puts report output into"
   )
 
-(defconst lenv-active (make-hash-table) "maps id -> activated handlers")
+(defvar lenv-active (make-hash-table) "maps id -> activated handlers")
 
 ;;-- end vars
 
@@ -54,7 +60,7 @@ where rest are the data values  read from the relevant line in a .lenv file
   (start    nil     :type 'lambda           :read-only t)
   (stop     nil     :type 'lambda           :read-only t)
   (teardown nil     :type 'lambda           :read-only t)
-  (modeline nil     :type (or 'lambda str)  :read-only t :documentation "added to global-mode-string")
+  (modeline nil     :type 'lambda           :read-only t :documentation "added to global-mode-string. eval'd with the state on entry")
   (cmds     nil     :type 'list             :read-only t :documentation "eg: install package, update...")
   (desc     nil     :type 'str              :read-only t :documentation "for reporting")
   )
@@ -66,6 +72,7 @@ where rest are the data values  read from the relevant line in a .lenv file
   (loc     nil   :type 'lenv-loc)
   (locked  nil   :type 'bool)
   (data    nil   :type 'list :documentation "a list for arbitrary data handlers can put")
+  (modeline nil  :type 'string)
   )
 
 (cl-defstruct (lenv-loc)
@@ -75,34 +82,78 @@ where rest are the data values  read from the relevant line in a .lenv file
   )
 ;;-- end structs
 
+(defun lenv-report-message (direction loc states)
+  "A Single message to report on the status of the environment at the end of lenv-start/stop"
+    (message "Env %s : %s\n%s"
+             direction
+             (lenv-loc-root loc)
+             (string-join (cl-loop for state in states
+                                   for id     = (lenv-state-id state)
+                                   for locked = (lenv-state-locked state)
+                                   for status = (lenv-state-status state)
+                                   collect
+                                   (format "- %s%s : %s"
+                                           (if locked "*" "")
+                                           id
+                                           status))
+                          "\n"))
+  )
+
 ;;;###autoload (defalias 'librarian-envs-register! #'librarian--envs-register)
 ;;;###autoload (autoload 'librarian-envs-register! "librarian--envs")
-(defun lenv-register (&rest args)
+(defun lenv-register (id &rest args)
   " Register a new handler.
 Either a librarian--envs-handler, or a plist to build one
 "
-  (let* ((new-handler (if (keywordp (car-safe args))
-                          (apply #'make-lenv-handler args)
-                        (car args)))
+  (let* ((new-handler (if (lenv-handler-p id)
+                          id
+                        (lenv-macro-aware-build-handler id args)))
          (id (lenv-handler-id new-handler))
          )
     (if (gethash id lenv-registered)
         (message "A Handler has already been registered with the name: %s" id)
       (puthash id new-handler lenv-registered)
+      (message "Registered Env Handler: %s" id)
       )
     )
 )
+
+(defun lenv-macro-aware-build-handler (id args)
+  "Build a handler, ensuring the callbacks are actually functions"
+  (cl-assert (plistp args) t "Should be a plist")
+  (setq args (plist-put args :setup (lenv-prep-function (plist-get args :setup))))
+  (setq args (plist-put args :start (lenv-prep-function (plist-get args :start))))
+  (setq args (plist-put args :stop (lenv-prep-function (plist-get args :stop))))
+  (setq args (plist-put args :teardown (lenv-prep-function (plist-get args :teardown))))
+  (setq args (plist-put args :modeline (lenv-prep-function (plist-get args :modeline))))
+  (apply #'make-lenv-handler :id id args)
+  )
+
+(defun lenv-prep-function (fn)
+  "Prep handler functions by possibly evaluating them"
+  (pcase fn
+    ('nil nil)
+    ((and x `(function (lambda . ,_)))
+     (eval x))
+    ((and x `(function ,_))
+     (eval x))
+    ((and x (pred symbolp) (pred symbol-function))
+     x)
+    (x nil)
+    )
+  )
 
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
 (defun lenv-clear-registry ()
   (interactive)
+  (message "Clearing Registered Environment Handlers")
   (clrhash lenv-registered)
   (clrhash lenv-active)
  )
 
 (defun lenv-init-loc (&optional start)
-  " return a envs-loc "
+  " return an envs-loc "
   (let* ((root (projectile-project-root start)))
     (make-lenv-loc :root root
                    :marker (when (f-exists? (f-join root lenv-marker)) lenv-marker)
@@ -110,7 +161,7 @@ Either a librarian--envs-handler, or a plist to build one
     )
   )
 
-(defun lenv-parse-marker (loc)
+(defun lenv-parse-marker (loc) ;; -> list
   "Parse a marker file for handler name data
 
 return: (list marker-id | (marker-id args))
@@ -120,29 +171,37 @@ return: (list marker-id | (marker-id args))
   (let ((marker (lenv-expand-marker loc))
         data
         )
-    (unless (f-exists? marker) (error "Marker Doesn't Exist" marker))
-    (with-temp-buffer
-      (insert-file-contents marker)
-      (goto-char (point-min))
-      (while (< (point) (point-max))
-        ;; go through each line
-        ;; ignore comments and blank lines
-        (cond ((looking-at "^#") nil)
-              ((looking-at "^$") nil)
-              (t (push (s-split " +" (buffer-substring (line-beginning-position)
-                                                       (line-end-position)) t)
-                       data)
-                 )
-              )
-        (forward-line)
+    (if (not (and marker (f-exists? marker)))
+        (progn (message "Marker Doesn't Exist" marker) nil)
+      (with-temp-buffer
+        (insert-file-contents marker)
+        (goto-char (point-min))
+        (while (< (point) (point-max))
+          ;; go through each line
+          ;; ignore comments and blank lines
+          (cond ((looking-at "^#") nil)
+                ((looking-at "^$") nil)
+                (t (push (s-split " +" (buffer-substring (line-beginning-position)
+                                                         (line-end-position)) t)
+                         data)
+                   )
+                )
+          (forward-line)
+          )
         )
+      (reverse data)
       )
-    (reverse data)
     )
   )
 
-(defun lenv-expand-marker (loc)
-  (f-join (lenv-loc-root loc) (lenv-loc-marker loc))
+(defun lenv-expand-marker (loc) ;; -> maybe[path]
+  (-when-let* ((root (lenv-loc-root loc))
+               (marker (lenv-loc-marker loc))
+               (joined (f-join (lenv-loc-root loc) (lenv-loc-marker loc)))
+               (exists (f-exists? joined))
+               )
+    joined
+    )
   )
 
 (defun lenv-get-handler (id)
@@ -188,6 +247,7 @@ then return the state
   )
 
 ;;;###autoload (defalias 'librarian-envs-start! #'librarian--envs-start)
+
 ;;;###autoload (autoload 'librarian--envs-start "librarian--envs")
 (defun lenv-start (arg &rest ids)
   " Main access point for setting up environment.
@@ -204,43 +264,48 @@ pass a prefix arg to use ivy to manually select from registered handlers
          (specs (mapcar #'ensure-list (or ids (lenv-parse-marker loc))))
          states
          )
-    (when arg
-      (setq specs nil)
-      (ivy-read "Available Handlers: "
-                (hash-table-keys lenv-registered)
-                :require-match t
-                :action #'(lambda (x) (add-to-list 'specs x))
-                )
-      )
-    (unless specs (user-error "No Handlers scheduled to run"))
+    (when arg (setq specs nil)
+          (ivy-read "Available Handlers: "
+                    (hash-table-keys lenv-registered)
+                    :require-match t
+                    :action #'(lambda (x) (add-to-list 'specs (list x)))
+                    ))
+    (if (not specs)
+        (user-error "No Handlers scheduled to run")
+      (message "Activating Environment Handlers: ")
+      (cl-loop for spec in specs do (message "- %s" spec)))
 
-    ;; wrap handlers in state with loc
+    ;; wrap handlers in a state with loc
     (setq states (cl-loop for vals in specs
                           collect
-                          (funcall #'lenv-activate-handler
-                                   (car vals)
-                                   loc
-                                   (cdr vals))
-                          ))
+                          (funcall #'lenv-activate-handler (car vals) loc (cdr vals))))
+    ;; Add modeline fn
+    (add-to-list 'global-mode-string
+                '(:eval (lenv-mode-line-fn)))
+
     (prog1
+        ;; now activate
         (cl-loop for state in states
                  for valid              = (and state (lenv-state-p state) (not (lenv-state-locked state)))
                  when valid for status  = (lenv-state-status state)
                  when valid for handler = (lenv-get-handler (lenv-state-id state))
                  when (and valid handler (eq status 'nil)) do
                  ;; run setup and set modeline
-                 (--if-let (lenv-handler-setup handler)    (apply it state (lenv-state-data state)))
-                 (--if-let (lenv-handler-modeline handler) (add-to-list 'global-mode-string it))
+                 (--if-let (lenv-handler-setup handler) (apply it state (lenv-state-data state)))
                  (setf (lenv-state-status state) 'setup)
-                 when (and valid handler) do
+                 when (and valid handler (eq status 'setup)) do
                  ;; run start
                  (--if-let (lenv-handler-start handler)    (apply it state (lenv-state-data state)))
+                 (--if-let (lenv-handler-modeline handler) (setf (lenv-state-modeline state)
+                                                                 (apply it state (lenv-state-data state))))
                  (setf (lenv-state-status state) 'active)
                  ;; collect them to return
                  when (and valid (eq (lenv-state-status state) 'active)) collect state
                  )
       ;; run enter hooks
       (run-hooks 'lenv-enter-hook)
+      ;; Report
+      (lenv-report-message "Activation" loc states)
       )
     )
   )
@@ -248,12 +313,11 @@ pass a prefix arg to use ivy to manually select from registered handlers
 ;;;###autoload (defalias 'librarian-envs-stop! #'librarian--envs-stop)
 ;;;###autoload (autoload 'librarian--envs-stop "librarian--envs")
 (defun lenv-stop (arg &rest ids)
-  (interactive)
-  (let ((loc (lenv-init-loc))
-        (specs (or ids
-                   (mapcar #'car (lenv-parse-marker loc))))
-        states
-        )
+  (interactive "P")
+  (let* ((loc (lenv-init-loc))
+         (specs (or ids (--if-let (lenv-parse-marker loc) (mapcar #'car it))))
+         states
+         )
     (when arg
       (setq specs nil)
       (ivy-read "Available Handlers: "
@@ -262,25 +326,37 @@ pass a prefix arg to use ivy to manually select from registered handlers
                 :action #'(lambda (x) (add-to-list 'specs x))
                 )
       )
+    (if (not specs)
+        (user-error "No Handlers scheduled to run")
+      (message "Deactivating Environment Handlers: ")
+      (cl-loop for spec in specs
+               do (message "- %s" spec)))
+
     (setq states (cl-loop for id in specs
                           collect
                           (lenv-get-state id)
                           ))
-    (cl-loop for state in states
-             for valid = (and state (lenv-state-p state) (not (lenv-state-locked state)))
-             when valid for status = (lenv-state-status state)
-             ;; or Deactivate
-             when (eq status 'active) do
-             (let ((handler (lenv-get-handler (lenv-state-id state))))
-               (--if-let (lenv-handler-stop handler)     (apply it state (lenv-state-data state))))
-             (setf (lenv-state-status state) 'setup)
-             ;; Teardown
-             when (eq status 'setup) do
-             (let ((handler (lenv-get-handler (lenv-state-id state))))
-               (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state))))
-             (setf (lenv-state-status state) nil)
-             when valid collect state
-             )
+    (prog1
+        (cl-loop for state in states
+                 for valid = (and state (lenv-state-p state) (not (lenv-state-locked state)))
+                 when valid for status = (lenv-state-status state)
+                 when valid for handler = (lenv-get-handler (lenv-state-id state))
+                 ;; Deactivate
+                 when (and valid handler (eq status 'active)) do
+                 (--if-let (lenv-handler-stop handler)     (apply it state (lenv-state-data state)))
+                 (setf (lenv-state-status state) 'setup
+                       (lenv-state-modeline state) nil)
+                 ;; or Teardown
+                 when (and valid handler (eq status 'setup)) do
+                 (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state)))
+                 (setf (lenv-state-status state) nil)
+                 when valid collect state
+                 )
+      ;; Run Exit hooks
+      (run-hooks 'lenv-exit-hook)
+      ;; Report
+      (lenv-report-message "Activation" loc states)
+      )
     )
   )
 
@@ -315,10 +391,9 @@ pass a prefix arg to use ivy to manually select from registered handlers
              using (hash-values state)
              for handler = (lenv-get-handler id)
              do
-             (princ (format "** %s : (activation: %s)\n" id (lenv-state-status state)))
-             (princ ":PROPERTIES:\n")
-             ;; TODO properties
-             (princ ":END:\n")
+             (princ (format "** %s : (%s)\n" id (lenv-state-status state)))
+             (princ (format "- Root: %s\n" (lenv-loc-root (lenv-state-loc state))))
+             (princ (format "- Args: %s\n" (lenv-state-data state)))
              )
     (princ "\n* Registered Environment Handlers:\n")
     (cl-loop for id being the hash-keys of lenv-registered
@@ -332,6 +407,17 @@ pass a prefix arg to use ivy to manually select from registered handlers
     (goto-char (point-min))
     )
 )
+
+(defun lenv-mode-line-fn ()
+  "A Function for formatting active environment strings for the modeline"
+  (-if-let (modelines (cl-loop for state being the hash-values of lenv-active
+                               when (lenv-state-modeline state)
+                               collect (lenv-state-modeline state)
+                               ))
+      (format "(Envs: %s)" (string-join modelines " "))
+    ""
+    )
+  )
 
 
 (provide 'librarian--envs)
