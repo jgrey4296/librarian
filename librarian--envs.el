@@ -13,6 +13,7 @@
   (require 'dash)
   (require 'f)
   (require 's)
+  (require 'jg-misc-macros)
   )
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
@@ -82,12 +83,13 @@ where rest are the data values  read from the relevant line in a .lenv file
   )
 ;;-- end structs
 
-(defun lenv-report-message (direction loc states)
+(defun lenv-report-message (direction loc)
   "A Single message to report on the status of the environment at the end of lenv-start/stop"
+  (when (not (hash-table-empty-p lenv-active))
     (message "Env %s : %s\n%s"
              direction
              (lenv-loc-root loc)
-             (string-join (cl-loop for state in states
+             (string-join (cl-loop for state being the hash-values in lenv-active
                                    for id     = (lenv-state-id state)
                                    for locked = (lenv-state-locked state)
                                    for status = (lenv-state-status state)
@@ -97,6 +99,7 @@ where rest are the data values  read from the relevant line in a .lenv file
                                            id
                                            status))
                           "\n"))
+    )
   )
 
 ;;;###autoload (defalias 'librarian-envs-register! #'librarian--envs-register)
@@ -121,36 +124,26 @@ Either a librarian--envs-handler, or a plist to build one
 (defun lenv-macro-aware-build-handler (id args)
   "Build a handler, ensuring the callbacks are actually functions"
   (cl-assert (plistp args) t "Should be a plist")
-  (setq args (plist-put args :setup (lenv-prep-function (plist-get args :setup))))
-  (setq args (plist-put args :start (lenv-prep-function (plist-get args :start))))
-  (setq args (plist-put args :stop (lenv-prep-function (plist-get args :stop))))
-  (setq args (plist-put args :teardown (lenv-prep-function (plist-get args :teardown))))
-  (setq args (plist-put args :modeline (lenv-prep-function (plist-get args :modeline))))
+  (setq args (plist-put args :setup (upfun! (plist-get args :setup))))
+  (setq args (plist-put args :start (upfun! (plist-get args :start))))
+  (setq args (plist-put args :stop (upfun! (plist-get args :stop))))
+  (setq args (plist-put args :teardown (upfun! (plist-get args :teardown))))
+  (setq args (plist-put args :modeline (upfun! (plist-get args :modeline))))
   (apply #'make-lenv-handler :id id args)
   )
 
-(defun lenv-prep-function (fn)
-  "Prep handler functions by possibly evaluating them"
-  (pcase fn
-    ('nil nil)
-    ((and x `(function (lambda . ,_)))
-     (eval x))
-    ((and x `(function ,_))
-     (eval x))
-    ((and x (pred symbolp) (pred symbol-function))
-     x)
-    (x nil)
-    )
-  )
 
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
 (defun lenv-clear-registry ()
   (interactive)
-  (message "Clearing Registered Environment Handlers")
-  (clrhash lenv-registered)
-  (clrhash lenv-active)
- )
+  (if (not (hash-table-empty-p lenv-active))
+      (message "There are active environments, deactivate them before clearining")
+    (message "Clearing Registered Environment Handlers")
+    (clrhash lenv-registered)
+    (clrhash lenv-active)
+    )
+  )
 
 (defun lenv-init-loc (&optional start)
   " return an envs-loc "
@@ -300,12 +293,12 @@ pass a prefix arg to use ivy to manually select from registered handlers
                                                                  (apply it state (lenv-state-data state))))
                  (setf (lenv-state-status state) 'active)
                  ;; collect them to return
-                 when (and valid (eq (lenv-state-status state) 'active)) collect state
+                 when t collect state
                  )
       ;; run enter hooks
       (run-hooks 'lenv-enter-hook)
       ;; Report
-      (lenv-report-message "Activation" loc states)
+      (lenv-report-message "Activation" loc)
       )
     )
   )
@@ -350,12 +343,13 @@ pass a prefix arg to use ivy to manually select from registered handlers
                  when (and valid handler (eq status 'setup)) do
                  (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state)))
                  (setf (lenv-state-status state) nil)
-                 when valid collect state
+                 (remhash (lenv-state-id state) lenv-active)
+                 when t collect state
                  )
       ;; Run Exit hooks
       (run-hooks 'lenv-exit-hook)
       ;; Report
-      (lenv-report-message "Activation" loc states)
+      (lenv-report-message "Activation" loc)
       )
     )
   )
