@@ -69,7 +69,7 @@
   (it "can get a registered handler by symbol id"
     (lenv-register hand)
     (expect (lenv-get-handler 'from-struct) :to-be hand))
-  (it "will return nill on getting a non-existing handler"
+  (it "will return nil on getting a non-existing handler"
     (expect (lenv-get-handler 'blah) :to-be nil))
 )
 
@@ -170,17 +170,19 @@
   (it "basic 2 stage setup->start"
     (let ((states (lenv-start nil "blah")))
       (expect (length states) :to-equal 1)
-      (expect (lenv-state-status (car states)) :to-be 'active)
+      (expect (lenv-state-status (car states)) :to-be 'setup)
       )
     )
   (it "multi state starting"
     (cl-loop for state in (lenv-start nil "blah" "bloo")
-             do (expect (lenv-state-status state) :to-be 'active))
+             do (expect (lenv-state-status state) :to-be 'setup))
     )
   (it "only starts unlocked states"
     (lenv-start nil 'blah)
+    (expect (lenv-state-status (lenv-get-state 'blah)) :to-be 'setup)
     (lenv-toggle-lock 'blah)
-    (expect (length (lenv-start nil 'blah 'bloo)) :to-equal 1)
+    (expect (length (lenv-start nil 'blah 'bloo)) :to-equal 2)
+    (expect (lenv-state-status (lenv-get-state 'blah)) :to-be 'setup)
     )
   (it "adds params to state data"
     (let* ((states (lenv-start nil '(blah bloo aweg)))
@@ -214,6 +216,7 @@
     (expect 'start :not :to-have-been-called)
     (lenv-start nil 'blah)
     (expect 'setup :to-have-been-called)
+    (lenv-start nil 'blah)
     (expect 'start :to-have-been-called)
     )
 
