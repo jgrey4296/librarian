@@ -13,7 +13,7 @@
   (require 'dash)
   (require 'f)
   (require 's)
-  (require 'jg-misc-macros)
+  (require 'macro-tools--util)
   )
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
