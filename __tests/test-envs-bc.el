@@ -48,9 +48,9 @@
         (plist '(from-plist :lang py))
         )
   ;; Setup
-  (before-each (lenv-clear-registry))
+  (before-each (lenv-clear-registry t))
   ;; Teardown
-  (after-all (lenv-clear-registry))
+  (after-all (lenv-clear-registry t))
   ;; Specs:
   (it "is a sanity test" (expect t :to-be (not nil)))
   (it "can register from a plist"
@@ -77,7 +77,7 @@
   :var ((hand (make-lenv-handler :id 'test))
         (loc  (make-lenv-loc :root default-directory :marker lenv-marker))
         )
-  (before-each (lenv-clear-registry)
+  (before-each (lenv-clear-registry t)
                (lenv-register hand)
                )
   (it "should add a state obj on activation"
@@ -118,7 +118,7 @@
         (loc  (make-lenv-loc :root default-directory :marker lenv-marker))
         )
   (before-all ;; add some handlers to the active list
-    (lenv-clear-registry)
+    (lenv-clear-registry t)
     (lenv-register hand1)
     (lenv-register hand2)
     (lenv-activate-handler 'blah loc)
@@ -161,7 +161,7 @@
         )
   ;; Setup
   (before-each
-    (lenv-clear-registry)
+    (lenv-clear-registry t)
     (lenv-register hand1)
     (lenv-register hand2)
     )
@@ -198,7 +198,7 @@
   :var (hand setup start)
   ;; Setup
   (before-each
-    (lenv-clear-registry)
+    (lenv-clear-registry t)
     (setf (symbol-function 'setup) #'(lambda (&rest data) nil)
           (symbol-function 'start) #'(lambda (&rest data) nil)
           hand (make-lenv-handler :id 'blah :setup #'setup :start #'start)
@@ -227,7 +227,7 @@
         )
   ;; Setup
   (before-each
-    (lenv-clear-registry)
+    (lenv-clear-registry t)
     (lenv-register hand1)
     (lenv-register hand2)
     (lenv-activate-handler 'blah loc)

@@ -124,9 +124,9 @@ Either a librarian--envs-handler, or a plist to build one
 (defun lenv-macro-aware-build-handler (id args)
   "Build a handler, ensuring the callbacks are actually functions"
   (cl-assert (plistp args) t "Should be a plist")
-  (setq args (plist-put args :setup (upfun! (plist-get args :setup))))
-  (setq args (plist-put args :start (upfun! (plist-get args :start))))
-  (setq args (plist-put args :stop (upfun! (plist-get args :stop))))
+  (setq args (plist-put args :setup    (upfun! (plist-get args :setup))))
+  (setq args (plist-put args :start    (upfun! (plist-get args :start))))
+  (setq args (plist-put args :stop     (upfun! (plist-get args :stop))))
   (setq args (plist-put args :teardown (upfun! (plist-get args :teardown))))
   (setq args (plist-put args :modeline (upfun! (plist-get args :modeline))))
   (apply #'make-lenv-handler :id id args)
@@ -135,10 +135,10 @@ Either a librarian--envs-handler, or a plist to build one
 
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
-(defun lenv-clear-registry ()
+(defun lenv-clear-registry (&optional force)
   (interactive)
-  (if (not (hash-table-empty-p lenv-active))
-      (message "There are active environments, deactivate them before clearining")
+  (if (not (or force (hash-table-empty-p lenv-active)))
+      (message "There are active environments, deactivate them before clearing")
     (message "Clearing Registered Environment Handlers")
     (clrhash lenv-registered)
     (clrhash lenv-active)
@@ -147,7 +147,7 @@ Either a librarian--envs-handler, or a plist to build one
 
 (defun lenv-init-loc (&optional start)
   " return an envs-loc "
-  (let* ((root (projectile-project-root start)))
+  (let* ((root (or (projectile-project-root start) default-directory)))
     (make-lenv-loc :root root
                    :marker (when (f-exists? (f-join root lenv-marker)) lenv-marker)
                    )

@@ -1,10 +1,10 @@
 ;;; librarian--util.el -*- lexical-binding: t; -*-
 
 (defvar liu-local-var-skip-regexp (rx (or "-map"
-                                                 "keymap"
-                                                 "display-table"
-                                                 "imenu-generic-expression"
-                                                 "font-lock-keywords"))
+                                          "keymap"
+                                          "display-table"
+                                          "imenu-generic-expression"
+                                          "font-lock-keywords"))
   )
 
 (defvar liu-xwidget-webkit-last-session-buffer nil)
