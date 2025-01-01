@@ -29,11 +29,11 @@
   (require 'f)
   )
 
-(defvar lit-mode-global-tags      (make-hash-table :test 'equal))
+(defvar lit-global-tags      (make-hash-table :test 'equal))
 
-(defvar-local lit-mode-local-tags (make-hash-table :test 'equal))
+(defvar-local lit-local-tags (make-hash-table :test 'equal))
 
-(defvar lit-mode-marker           (make-marker) "a marker for where the region to tag ends")
+(defvar lit-marker           (make-marker) "a marker for where the region to tag ends")
 
 (defvar litm-substitution-sources  nil)
 
@@ -68,7 +68,7 @@
 
 (defun lit-mode-random-selection  (n)
   (interactive "nHow many tags? ")
-  (let* ((tags (hash-table-keys lit-mode-global-tags))
+  (let* ((tags (hash-table-keys lit-global-tags))
          (selection (mapcar (lambda (x) (seq-random-elt tags)) (make-list n ?a)))
          )
     (with-temp-buffer-window "*Rand Tags*"
@@ -163,11 +163,11 @@
   (let ((delta (lit-mode--get-delta new)))
     (cl-loop for tag in (car delta)
              do
-             (puthash tag (1+ (gethash tag lit-mode-global-tags 0)) lit-mode-global-tags)
+             (puthash tag (1+ (gethash tag lit-global-tags 0)) lit-global-tags)
              )
     (cl-loop for tag in (cadr delta)
              do
-             (puthash tag (1- (gethash tag lit-mode-global-tags 1)) lit-mode-global-tags)
+             (puthash tag (1- (gethash tag lit-global-tags 1)) lit-global-tags)
              )
     )
   )
@@ -197,12 +197,12 @@ Can set multiple sections of entries, moving by `evil-backward-section-begin'
           )
       (cond ((eq evil-state 'visual)
              (setq start-pos evil-visual-beginning)
-             (move-marker lit-mode-marker evil-visual-end))
+             (move-marker lit-marker evil-visual-end))
             (t
              (setq start-pos (line-beginning-position))
-             (move-marker lit-mode-marker (line-end-position)))
+             (move-marker lit-marker (line-end-position)))
             )
-      (goto-char lit-mode-marker)
+      (goto-char lit-marker)
       (while (< start-pos (point))
         (cond ((null (save-excursion (lit-mode-get-tags)))
                (librarian-set-new-tags major-mode new))
@@ -256,7 +256,7 @@ returns the list of tags extracted
                                    ":" nil " +")))
         (unless (or (> (length tagline) 2) (string-empty-p (car tagline)))
           (puthash (car tagline) (string-to-number (or (cadr tagline) "1"))
-                   lit-mode-global-tags)))
+                   lit-global-tags)))
       (forward-line)
       )
     )
@@ -265,7 +265,7 @@ returns the list of tags extracted
 (defun litm-rebuild-tag-database ()
   "Rebuild the tag database from lit-mode-main-loc"
   (interactive)
-  (clrhash lit-mode-global-tags)
+  (clrhash lit-global-tags)
   (cond ((not lit-mode-main-loc)
          (message "no tags location is specified"))
         ((not (f-exists? lit-mode-main-loc))
