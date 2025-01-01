@@ -63,7 +63,6 @@
 
 (defvar lib-pdf-replace-library-string   "pdfs")
 
-(defvar lib-remove-field-newlines-regexp "^=")
 
 (defvar lib-curl-cmd      "curl")
 

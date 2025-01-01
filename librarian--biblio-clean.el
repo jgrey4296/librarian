@@ -11,6 +11,7 @@
   )
 
 (defvar lib-indent-equals-column 14)
+(defvar lib-remove-field-newlines-regexp "^=")
 
 (defvar lib-default-stubkey-base "stub_key_")
 
