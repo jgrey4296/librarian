@@ -19,10 +19,6 @@
 (unless (boundp 'counsel-search-engine)    (defvar counsel-search-engine nil))
 (unless (boundp 'ivy-initial-inputs-alist) (defvar ivy-initial-inputs-alist nil))
 
-(defvar lib--bibtex-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
-
-(defvar lib--bibtex-scholar-search-fields-exact '("title"))
-
 (defun lib---browser-amazon (url &rest args)
   ;; TODO Handle US and UK
   (signal 'browse-todo url)
@@ -187,21 +183,6 @@ the search engine to use."
   (condition-case _
       (lib---xref-show 'xref-backend-references identifier #'xref--show-xrefs)
     (cl-no-applicable-method nil)))
-
-(defun lib---bibliography-scholar (arg)
-  "Open the bibtex entry at point in google-scholar by its doi.
-With arg, searchs the dplp instead.
-"
-  (let* ((search-texts (mapcar #'bibtex-autokey-get-field librarian--bibtex-scholar-search-fields))
-         (exact-texts  (mapcar #'bibtex-autokey-get-field librarian--bibtex-scholar-search-fields-exact))
-         (exact-string (s-join " " (mapcar #'(lambda (x) (format "\"%s\"" x))
-                                           (-filter #'(lambda (x) (not (string-empty-p x))) exact-texts))))
-         (all-terms (s-concat exact-string " " (s-join " " search-texts)))
-         (cleaned (s-replace-regexp "{.+?\\(\\w\\)}" "\\1" all-terms))
-         )
-    (+lookup/online cleaned "Scholar")
-    )
-  )
 
 (provide 'librarian--backend)
 ;;; librarian-handlers.el ends here

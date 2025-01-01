@@ -11,7 +11,7 @@
   (require 'bibtex)
   )
 
-(defvar lib-indent-equals-column 14)
+;;-- vars
 
 (defvar lib-fill-column 50000)
 
@@ -25,15 +25,15 @@
 
 (defvar lib-open-url-with-pdf        nil)
 
-(defvar lib-todo-loc            (expand-file-name "~/github/bibliography/in_progress/todo.bib"))
+(defvar lib-todo-loc                 nil)
 
-(defvar lib-loc-completions     (expand-file-name "~/github/bibliography/completions/"))
+(defvar lib-todo-files-loc           nil)
 
-(defvar lib-loc-export-bib-file (expand-file-name "tex-config/tex/export_template.tex" templates-loc))
+(defvar lib-completions-loc          nil)
 
-(defvar lib-loc-temp-dir        (expand-file-name "~/.tex/"))
+(defvar lib-export-bib-loc           nil)
 
-(defvar lib-in-progress-files-locs (expand-file-name "/media/john/data/todo/pdfs/"))
+(defvar lib-temp-tex-loc             nil)
 
 (defvar lib-search-fields               '("tags" "year" "publisher"))
 
@@ -57,17 +57,11 @@
 
 (setq bibtex-completion-display-formats lib-completion-display-formats)
 
-(defvar lib-pdf-loc-regexp               (format "file[[:digit:]]*\s*=\s*{\\(.+\\)/\\(.+%s\\)?"
-                                                       (pcase system-type
-                                                         ('darwin "pdf_library")
-                                                         ('gnu/linux "pdfs")
-                                                         )))
+(defvar lib-pdf-loc-regexp               "file[[:digit:]]*\s*=\s*{\\(.+\\)/\\(.+pdfs\\)?")
 
 (defvar lib-pdf-replace-match-string     "~/")
 
-(defvar lib-pdf-replace-library-string   (pcase system-type
-                                                 ('darwin "pdf_library")
-                                                 ('gnu/linux "pdfs")))
+(defvar lib-pdf-replace-library-string   "pdfs")
 
 (defvar lib-remove-field-newlines-regexp "^=")
 
@@ -77,7 +71,11 @@
 
 (defvar bibtex-completion-pdf-open-function 'browse-url)
 
-(defun lib-edit-entry-type ()
+;;-- end vars
+
+;;-- commands
+
+(defun lib-entry-type ()
   " Edit the @type of a bibtex entry, using
 bibtex-BibTeX-entry-alist for completion options "
   (interactive)
@@ -354,14 +352,14 @@ and insert it into the current entry "
     (unless newest
       (user-error "No Applicable File Found")
       )
-    (when (f-exists? (f-join lib-in-progress-files-locs (f-filename newest)))
+    (when (f-exists? (f-join lib-todo-files-loc (f-filename newest)))
       (use-error "File already exists in todo directory: %s" newest)
       )
     (message "Newest: %s" newest)
-    (f-move newest (f-join lib-in-progress-files-locs (f-filename newest)))
+    (f-move newest (f-join lib-todo-files-loc (f-filename newest)))
     (bibtex-beginning-of-entry)
     (save-excursion
-      (bibtex-set-field "file" (f-join lib-in-progress-files-locs (f-filename newest)))
+      (bibtex-set-field "file" (f-join lib-todo-files-loc (f-filename newest)))
       )
     )
 )
@@ -594,6 +592,9 @@ With arg, searchs the dplp instead.
                         (match-string 1 str))
                    (user-error "%s : Year or date field `%s' invalid" (bibtex-autokey-get-title) str))))
     (substring year (max 0 (- (length year) bibtex-autokey-year-length)))))
+
+;;-- end commands
+
 (provide 'librarian--biblio-edit)
 
 ;;-- Footer
