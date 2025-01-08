@@ -4,8 +4,20 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'f)
+  (require 's)
   (require 'ivy)
   (require 'parent-mode)
+
+  (declare-function s-lines "s")
+  (declare-function ivy-read "ivy")
+  (declare-function f-files "f")
+  (declare-function f-ext? "f")
+  (declare-function f-join "f")
+  (declare-function f-exists? "f")
+  (declare-function f-filename "f")
+  (declare-function -reject "dash")
+  (declare-function -partial "dash")
+  (declare-function parent-mode-list "parent-mode")
   )
 
 (defvar lib-location nil)
@@ -143,7 +155,7 @@ fn is (lambda (str) (insert str))
 
 ;;; Public Aliases
 
-(defvaralias 'librarian-insert-loc 'librarian--insert-location)
+(defvaralias 'librarian-insert-loc 'lib-location)
 
 (provide 'librarian--insert)
 ;; Local Variables:
