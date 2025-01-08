@@ -41,20 +41,29 @@
 (defun lib-build-cache ()
   " Build the buffer local general insert cache "
   (interactive)
-  (setq-local lib-keys
-              (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                       for exists = (f-exists? (f-join lib-location (symbol-name mode)))
-                       when (and exists (not (gethash mode lib-key-cache)))
-                       do
-                       (puthash mode
-                                (mapcar (-partial #'lib--propertize (symbol-name mode))
-                                        (-reject (-partial #'f-ext? "DS_Store")
-                                                 (f-files (f-join lib-location (symbol-name mode)))))
-                                lib-key-cache)
-                       when exists
-                       append (gethash mode lib-key-cache)
-                       )
-              )
+  (let ((modes (append (parent-mode-list major-mode)
+                       local-minor-modes
+                       global-minor-modes
+                       '(fundamental-mode)
+                       ))
+        )
+    (when lib-location
+      (setq-local lib-keys
+                  (cl-loop for mode in modes
+                           for exists = (f-exists? (f-join lib-location (symbol-name mode)))
+                           when (and exists (not (gethash mode lib-key-cache)))
+                           do
+                           (puthash mode
+                                    (mapcar (-partial #'lib--propertize (symbol-name mode))
+                                            (-reject (-partial #'f-ext? "DS_Store")
+                                                     (f-files (f-join lib-location (symbol-name mode)))))
+                                    lib-key-cache)
+                           when exists
+                           append (gethash mode lib-key-cache)
+                           )
+                  )
+      )
+    )
   )
 
 (defun lib-default (x)
