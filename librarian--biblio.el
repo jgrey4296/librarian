@@ -403,7 +403,7 @@ Then move the pdfs of the entry to the canonical location
 
 (defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
 
-(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
+(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-pdf-loc)
 
 (defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
 
