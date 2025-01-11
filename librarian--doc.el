@@ -84,9 +84,7 @@
     ;; Deal with result
     (unwind-protect
         ;; When a jump is real,
-        (when (cond ((null result)
-                     (message "No lookup handler could find %S" identifier)
-                     nil)
+        (when (cond ((null result) nil)
                     ((markerp result)
                      (funcall (or display-fn #'switch-to-buffer) (marker-buffer result))
                      (goto-char result)
@@ -102,7 +100,6 @@
   )
 
 (defun lid--run-handler (prop identifier)
-
   (let* ((handlers (pcase prop
                      (:assignments     lid-assignments-functions)
                      (:declaration     lid-declaration-functions)
