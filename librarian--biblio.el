@@ -7,6 +7,7 @@
 ;;-- end header
 
 (eval-when-compile
+  (require 's)
   (require 'bibtex)
   (require 'bibtex-completion)
   (require 'org-ref-bibtex)
@@ -273,7 +274,7 @@ returns the new location
            (author (s-capitalize (bibtex-autokey-get-names)))
            (year   (bibtex-text-in-field "year"))
            (files  (-filter #'identity (mapcar #'lib-get-files-fn entry)))
-           (pdflib lib--pdf-loc)
+           (pdflib lib-pdf-loc)
            (finalpath (f-join pdflib year author))
            newlocs)
       (make-directory finalpath 'parents)
@@ -291,7 +292,7 @@ returns the new location
                for response = (read-string (format "%sRefile to %s? "
                                                    (if destructive "Destructive " "")
                                                    target))
-               when (s-equals "y" response)
+               when (s-equals? "y" response)
                if destructive
                do (f-move source target)
                else
