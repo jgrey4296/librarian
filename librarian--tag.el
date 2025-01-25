@@ -37,9 +37,9 @@
 
 (defvar litm-substitution-sources  nil)
 
-(defvar lit-mode-main-loc         nil)
+(defvar litm-main-loc         nil)
 
-(defvar lit-mode-all-tags         nil)
+(defvar litm-all-tags         nil)
 
 (defvar lit--current-entry-tags nil)
 
@@ -66,7 +66,7 @@
 
 ;;-- end mode def
 
-(defun lit-mode-random-selection  (n)
+(defun litm-random-selection  (n)
   (interactive "nHow many tags? ")
   (let* ((tags (hash-table-keys lit-global-tags))
          (selection (mapcar (lambda (x) (seq-random-elt tags)) (make-list n ?a)))
@@ -160,7 +160,7 @@
 
 (defun litm-cache-global-tags (new)
   "Called with new tags to update the global tags hashtable"
-  (let ((delta (lit-mode--get-delta new)))
+  (let ((delta (litm--get-delta new)))
     (cl-loop for tag in (car delta)
              do
              (puthash tag (1+ (gethash tag lit-global-tags 0)) lit-global-tags)
@@ -204,16 +204,16 @@ Can set multiple sections of entries, moving by `evil-backward-section-begin'
             )
       (goto-char lit-marker)
       (while (< start-pos (point))
-        (cond ((null (save-excursion (lit-mode-get-tags)))
+        (cond ((null (save-excursion (litm-get-tags)))
                (librarian-set-new-tags major-mode new))
               (t
                (apply #'librarian-set-tags
                         major-mode
-                        (lit-mode--get-delta new)
+                        (litm--get-delta new)
                         ))
               )
         (librarian-cache-tags major-mode new)
-        (lit-mode-cache-global-tags new)
+        (litm-cache-global-tags new)
         (librarian-backward-entry major-mode)
         )
       )
@@ -263,15 +263,15 @@ returns the list of tags extracted
   )
 
 (defun litm-rebuild-tag-database ()
-  "Rebuild the tag database from lit-mode-main-loc"
+  "Rebuild the tag database from litm-main-loc"
   (interactive)
   (clrhash lit-global-tags)
-  (cond ((not lit-mode-main-loc)
+  (cond ((not litm-main-loc)
          (message "no tags location is specified"))
-        ((not (f-exists? lit-mode-main-loc))
-         (message "tags location does not exist : %s" lit-mode-main-loc))
-        ((f-dir? lit-mode-main-loc)
-         (let ((files (f-entries lit-mode-main-loc
+        ((not (f-exists? litm-main-loc))
+         (message "tags location does not exist : %s" litm-main-loc))
+        ((f-dir? litm-main-loc)
+         (let ((files (f-entries litm-main-loc
                                  (-rpartial 'f-ext? "sub")
                                  t)))
            (message "Tags location is a directory, reading files")
@@ -279,8 +279,8 @@ returns the list of tags extracted
                     do
                     (litm-parse-tag-file file))
            ))
-        ((f-file? lit-mode-main-loc)
-         (litm-parse-tag-file lit-mode-main-loc))
+        ((f-file? litm-main-loc)
+         (litm-parse-tag-file litm-main-loc))
         (t (error "Unkown tag rebuild state"))
         )
   )
