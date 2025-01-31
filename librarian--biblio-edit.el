@@ -63,11 +63,6 @@
 
 (defvar lib-pdf-replace-library-string   "pdfs")
 
-
-(defvar lib-curl-cmd      "curl")
-
-(defvar lib-curl-args     '("-sLI" "--connect-timeout" "3"))
-
 (defvar bibtex-completion-pdf-open-function 'browse-url)
 
 ;;-- end vars

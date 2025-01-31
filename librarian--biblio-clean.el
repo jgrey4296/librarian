@@ -36,6 +36,11 @@
 
 (defvar lib-clean-move-entry-on-fail nil)
 
+(defvar lib-curl-cmd      "curl")
+
+(defvar lib-curl-args     '("-sLI" "--connect-timeout" "3"))
+
+
 ;;-- hooks
 (defun lib-insert-stub-key-h ()
   "Insert a stub key if there isnt an actual one"
