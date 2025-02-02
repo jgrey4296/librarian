@@ -4,8 +4,20 @@
 (eval-when-compile
   (require 'cl-lib)
   (require 'f)
+  (require 's)
   (require 'ivy)
   (require 'parent-mode)
+
+  (declare-function s-lines "s")
+  (declare-function ivy-read "ivy")
+  (declare-function f-files "f")
+  (declare-function f-ext? "f")
+  (declare-function f-join "f")
+  (declare-function f-exists? "f")
+  (declare-function f-filename "f")
+  (declare-function -reject "dash")
+  (declare-function -partial "dash")
+  (declare-function parent-mode-list "parent-mode")
   )
 
 (defvar lib-location nil)
@@ -41,20 +53,29 @@
 (defun lib-build-cache ()
   " Build the buffer local general insert cache "
   (interactive)
-  (setq-local lib-keys
-              (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                       for exists = (f-exists? (f-join lib-location (symbol-name mode)))
-                       when (and exists (not (gethash mode lib-key-cache)))
-                       do
-                       (puthash mode
-                                (mapcar (-partial #'lib--propertize (symbol-name mode))
-                                        (-reject (-partial #'f-ext? "DS_Store")
-                                                 (f-files (f-join lib-location (symbol-name mode)))))
-                                lib-key-cache)
-                       when exists
-                       append (gethash mode lib-key-cache)
-                       )
-              )
+  (let ((modes (append (parent-mode-list major-mode)
+                       local-minor-modes
+                       global-minor-modes
+                       '(fundamental-mode)
+                       ))
+        )
+    (when lib-location
+      (setq-local lib-keys
+                  (cl-loop for mode in modes
+                           for exists = (f-exists? (f-join lib-location (symbol-name mode)))
+                           when (and exists (not (gethash mode lib-key-cache)))
+                           do
+                           (puthash mode
+                                    (mapcar (-partial #'lib--propertize (symbol-name mode))
+                                            (-reject (-partial #'f-ext? "DS_Store")
+                                                     (f-files (f-join lib-location (symbol-name mode)))))
+                                    lib-key-cache)
+                           when exists
+                           append (gethash mode lib-key-cache)
+                           )
+                  )
+      )
+    )
   )
 
 (defun lib-default (x)
@@ -134,7 +155,7 @@ fn is (lambda (str) (insert str))
 
 ;;; Public Aliases
 
-(defvaralias 'librarian-insert-loc 'librarian--insert-location)
+(defvaralias 'librarian-insert-loc 'lib-location)
 
 (provide 'librarian--insert)
 ;; Local Variables:

@@ -29,55 +29,15 @@
   (require 'f)
   )
 
-(defvar lit-mode-global-tags      (make-hash-table :test 'equal))
+(defvar lit-global-tags      (make-hash-table :test 'equal))
 
-(defvar-local lit-mode-local-tags (make-hash-table :test 'equal))
+(defvar-local lit-local-tags (make-hash-table :test 'equal))
 
-(defvar lit-mode-marker           (make-marker) "a marker for where the region to tag ends")
-
-(defvar litm-substitution-sources  nil)
-
-(defvar lit-mode-main-loc         nil)
-
-(defvar lit-mode-all-tags         nil)
+(defvar lit-marker           (make-marker) "a marker for where the region to tag ends")
 
 (defvar lit--current-entry-tags nil)
 
 (defvar lit--current-buffer-tags nil)
-
-;;-- mode def
-
-(define-minor-mode librarian-tag-mode
-  "  "
-  :init-value nil
-  :lighter "LibTag"
-  ;; :global t
-  ;; :keymap nil
-
-  )
-
-(defun lit-mode/turn-on ()
-  (unless (minibufferp)
-    (librarian-tag-mode 1)
-    )
-  )
-
-(define-globalized-minor-mode global-librarian-tagging-mode librarian-tag-mode lit-mode/turn-on)
-
-;;-- end mode def
-
-(defun lit-mode-random-selection  (n)
-  (interactive "nHow many tags? ")
-  (let* ((tags (hash-table-keys lit-mode-global-tags))
-         (selection (mapcar (lambda (x) (seq-random-elt tags)) (make-list n ?a)))
-         )
-    (with-temp-buffer-window "*Rand Tags*"
-                             'display-buffer-pop-up-frame
-                             nil
-                             (mapc (lambda (x) (princ x ) (princ "\n")) selection)
-                             )
-    )
-  )
 
 ;;-- api
 (cl-defgeneric librarian-set-tags (mode add sub keep)
@@ -158,21 +118,7 @@
   )
 ;;-- end defaults
 
-(defun litm-cache-global-tags (new)
-  "Called with new tags to update the global tags hashtable"
-  (let ((delta (lit-mode--get-delta new)))
-    (cl-loop for tag in (car delta)
-             do
-             (puthash tag (1+ (gethash tag lit-mode-global-tags 0)) lit-mode-global-tags)
-             )
-    (cl-loop for tag in (cadr delta)
-             do
-             (puthash tag (1- (gethash tag lit-mode-global-tags 1)) lit-mode-global-tags)
-             )
-    )
-  )
-
-(defun litm--get-delta (new)
+(defun lit-get-delta (new)
   "Given a list of normalized change tags,
 returns a triple of (add sub keep), against the current entry tags "
   (let ((add (seq-difference new lit--current-entry-tags))
@@ -183,116 +129,10 @@ returns a triple of (add sub keep), against the current entry tags "
     )
   )
 
-(defun litm-set-tags (new)
-  "Utility action to set tags.
-Implement a cl-defmethod `librarian-set-tags' ((mode (eql '{}))) to use,
-and `librarian-set-new-tags'.
-
-Can set multiple sections of entries, moving by `evil-backward-section-begin'
-
- "
-  (save-excursion
-    (let ((new (librarian-normalize-tags major-mode new))
-          start-pos
-          )
-      (cond ((eq evil-state 'visual)
-             (setq start-pos evil-visual-beginning)
-             (move-marker lit-mode-marker evil-visual-end))
-            (t
-             (setq start-pos (line-beginning-position))
-             (move-marker lit-mode-marker (line-end-position)))
-            )
-      (goto-char lit-mode-marker)
-      (while (< start-pos (point))
-        (cond ((null (save-excursion (lit-mode-get-tags)))
-               (librarian-set-new-tags major-mode new))
-              (t
-               (apply #'librarian-set-tags
-                        major-mode
-                        (lit-mode--get-delta new)
-                        ))
-              )
-        (librarian-cache-tags major-mode new)
-        (lit-mode-cache-global-tags new)
-        (librarian-backward-entry major-mode)
-        )
-      )
-    )
-)
-
-(defun litm-get-tags ()
-  "Utility action to get tags for current entry.
-updates `lit--current-entry-tags'
-Implement a cl-defmethod `librarian-get-tags` ((mode (eql '{}))) to use
-returns the list of tags extracted
-"
-  (save-excursion
-    (setq lit--current-entry-tags
-          (librarian-normalize-tags major-mode (librarian-get-tags major-mode)))
-       )
-  lit--current-entry-tags
-  )
-
-(defun litm-get-buffer-tags (&optional buffer)
-  " sets `lit--current-buffer-tags'
-Implement a cl-defmethod `librarian-get-buffer-tags` ((mode (eql '{}))) to use
-returns the list of tags extracted
-"
-  (setq lit--current-buffer-tags
-        (with-current-buffer (or buffer (current-buffer))
-          (save-excursion
-            (librarian-normalize-tags major-mode (librarian-get-buffer-tags major-mode))))
-        )
-  lit--current-buffer-tags
-  )
-
-(defun litm-parse-tag-file (path)
-  " parse a file of tags and insert them into the global tag hash "
-  (with-temp-buffer
-    (insert-file path)
-    (goto-char (point-min))
-    (while (< (point) (point-max))
-      (let ((tagline (split-string (buffer-substring (line-beginning-position) (line-end-position))
-                                   ":" nil " +")))
-        (unless (or (> (length tagline) 2) (string-empty-p (car tagline)))
-          (puthash (car tagline) (string-to-number (or (cadr tagline) "1"))
-                   lit-mode-global-tags)))
-      (forward-line)
-      )
-    )
-  )
-
-(defun litm-rebuild-tag-database ()
-  "Rebuild the tag database from lit-mode-main-loc"
-  (interactive)
-  (clrhash lit-mode-global-tags)
-  (cond ((not lit-mode-main-loc)
-         (message "no tags location is specified"))
-        ((not (f-exists? lit-mode-main-loc))
-         (message "tags location does not exist : %s" lit-mode-main-loc))
-        ((f-dir? lit-mode-main-loc)
-         (let ((files (f-entries lit-mode-main-loc
-                                 (-rpartial 'f-ext? "sub")
-                                 t)))
-           (message "Tags location is a directory, reading files")
-           (cl-loop for file in files
-                    do
-                    (litm-parse-tag-file file))
-           ))
-        ((f-file? lit-mode-main-loc)
-         (litm-parse-tag-file lit-mode-main-loc))
-        (t (error "Unkown tag rebuild state"))
-        )
-  )
-
-
-;; Public Aliases
-
 (provide 'librarian--tag)
 ;;; librarian-tag-mode.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lit-" . "librarian--tag-")
-;; ("litm-" . "librarian-tag-mode-")
 ;; )
 ;; End:

@@ -132,7 +132,6 @@ Either a librarian--envs-handler, or a plist to build one
   (apply #'make-lenv-handler :id id args)
   )
 
-
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
 (defun lenv-clear-registry (&optional force)

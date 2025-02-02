@@ -7,6 +7,7 @@
 ;;-- end header
 
 (eval-when-compile
+  (require 's)
   (require 'bibtex)
   (require 'bibtex-completion)
   (require 'org-ref-bibtex)
@@ -122,7 +123,9 @@
                            )
                   )
            )
-      (with-process-wrap! lib-meta-buffer procs)
+      (with-process-wrap! lib-meta-buffer
+                          #'macro-tools--process-sentinel
+                          procs)
       )
     )
   )
@@ -171,11 +174,14 @@
   )
 
 (defun lib-apply-meta-solo-fn (args file)
+  "Apply metadata to a single file"
   (lib-apply-meta-fn args (list file))
   )
 
 (defun lib-apply-meta-fn (args files)
+  "Apply some metadata to some files using librarian--biblio-meta-program"
   (with-process-wrap! lib-meta-buffer
+                      #'macro-tools--process-sentinel
                       (cl-loop for file in files
                                collect
                                (apply #'start-process
@@ -273,7 +279,7 @@ returns the new location
            (author (s-capitalize (bibtex-autokey-get-names)))
            (year   (bibtex-text-in-field "year"))
            (files  (-filter #'identity (mapcar #'lib-get-files-fn entry)))
-           (pdflib lib--pdf-loc)
+           (pdflib lib-pdf-loc)
            (finalpath (f-join pdflib year author))
            newlocs)
       (make-directory finalpath 'parents)
@@ -291,7 +297,7 @@ returns the new location
                for response = (read-string (format "%sRefile to %s? "
                                                    (if destructive "Destructive " "")
                                                    target))
-               when (s-equals "y" response)
+               when (s-equals? "y" response)
                if destructive
                do (f-move source target)
                else
@@ -371,12 +377,7 @@ Then move the pdfs of the entry to the canonical location
   (interactive)
   (unless (save-selected-window (other-window 1) (eq major-mode 'bibtex-mode))
     (user-error "Other Window Is Not a Bibtex Buffer"))
-  (save-excursion
-    (let ((start (bibtex-beginning-of-entry))
-          (end (bibtex-end-of-entry)))
-      (copy-region-as-kill start end)
-      )
-    )
+  (save-excursion (lib-u-copy-entry))
   (save-selected-window (other-window 1)
                         (end-of-buffer)
                         (newline-and-indent)
@@ -389,6 +390,15 @@ Then move the pdfs of the entry to the canonical location
     )
   )
 
+(defun lib-font-lock-mod-hook ()
+  (pushnew!
+   bibtex-font-lock-keywords
+   '(" title.+$" (0 '(:background "mediumpurple4")))
+   '("\\(file\\).+?=" (1 '(:background "darkgoldenrod")))
+   '("\\(tags\\).+?=.+$" (0 '(:background "darkseagreen")))
+   )
+  )
+
 ;;;; Public Aliases
 
 (defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
@@ -399,14 +409,31 @@ Then move the pdfs of the entry to the canonical location
 
 (defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
 
-(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-librarian-loc)
+(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-pdf-loc)
 
 (defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
+
+(defalias 'librarian-biblio-build-file-list          #'librarian--bibio-build-list)
+
+(defalias 'librarian-biblio-get-meta                 #'librarian--biblio-meta-retrieval)
+
+(defalias 'librarian-biblio-set-cover                #'librarian--biblio-set-ebook-cover)
+
+(defalias 'librarian-biblio-update-entry-from-doi    #'librarian--biblio-update-entry)
+
+(defalias 'librarian-biblio-create-from-doi          #'librarian--biblio-insert-entry-from-doi)
+
+(defalias 'librarian-biblio-refile-to-canonical      #'librarian--biblio-refile-by-year)
+
+(defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
+
+(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
 
 (provide 'librarian--biblio)
 ;;; librarian-bibliography.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lib-" . "librarian--biblio-")
+;; ("lib-u-" . "librarian--biblio-util-")
 ;; )
 ;; End:

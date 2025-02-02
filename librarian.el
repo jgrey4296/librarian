@@ -39,6 +39,7 @@
 (require 'lib--regular)
 (require 'lib--tag)
 (require 'lib--tag-chart)
+(require 'lib--tag-mode)
 (require 'lib--words)
 (require 'lib--insert)
 
