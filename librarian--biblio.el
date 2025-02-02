@@ -123,7 +123,9 @@
                            )
                   )
            )
-      (with-process-wrap! lib-meta-buffer procs)
+      (with-process-wrap! lib-meta-buffer
+                          #'macro-tools--process-sentinel
+                          procs)
       )
     )
   )
@@ -172,11 +174,14 @@
   )
 
 (defun lib-apply-meta-solo-fn (args file)
+  "Apply metadata to a single file"
   (lib-apply-meta-fn args (list file))
   )
 
 (defun lib-apply-meta-fn (args files)
+  "Apply some metadata to some files using librarian--biblio-meta-program"
   (with-process-wrap! lib-meta-buffer
+                      #'macro-tools--process-sentinel
                       (cl-loop for file in files
                                collect
                                (apply #'start-process
