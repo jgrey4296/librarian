@@ -3,6 +3,7 @@
 
 (eval-when-compile
   (require 'dash)
+  (require 'better-jumper)
   (require 'librarian--util)
   )
 
@@ -187,7 +188,10 @@ First attempts the :documentation handler specified with `set-lookup-handlers!'
 for the current mode/buffer (if any), then falls back to the backends in
 `lid-functions'."
   (interactive (list (librarian--util-get) current-prefix-arg))
-  (lid--go :documentation identifier)
+  (let ((curr (selected-window)))
+    (lid--go :documentation identifier)
+    (select-window curr)
+    )
   )
 
 ;;;###autoload
