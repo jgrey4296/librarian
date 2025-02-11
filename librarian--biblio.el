@@ -11,6 +11,7 @@
   (require 'bibtex)
   (require 'bibtex-completion)
   (require 'org-ref-bibtex)
+  (require 'macro-tools--processes)
   )
 
 (defvar lib-library-loc "" "Where the main bibtex library is located")
