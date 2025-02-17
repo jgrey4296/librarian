@@ -9,6 +9,8 @@
 (eval-when-compile
   (require 'bookmark)
   (require 'bibtex)
+
+  (declare-function 'librarian-browse-open 'librarian--browse)
   )
 
 ;;-- vars
@@ -253,7 +255,7 @@ the entry of interest in the bibfile.  but does not check that."
   " Open the current entry's url in browser "
   (interactive)
   (when (bibtex-text-in-field "url")
-    (browse-url (bibtex-text-in-field "url")))
+    (librarian-browse-open (bibtex-text-in-field "url")))
   )
 
 (defun lib-open-doi ()
