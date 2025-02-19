@@ -124,7 +124,7 @@
     )
   )
 
-(advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-refs)
+(advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-xrefs)
 
 
 (provide 'librarian)
