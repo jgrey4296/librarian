@@ -62,18 +62,20 @@ where rest are the data values  read from the relevant line in a .lenv file
   (stop     nil     :type 'lambda           :read-only t)
   (teardown nil     :type 'lambda           :read-only t)
   (modeline nil     :type 'lambda           :read-only t :documentation "added to global-mode-string. eval'd with the state on entry")
+  (headline nil     :type 'lambda           :read-only t :documentation "added to global-mode-string. eval'd with the state on entry")
   (cmds     nil     :type 'list             :read-only t :documentation "eg: install package, update...")
   (desc     nil     :type 'str              :read-only t :documentation "for reporting")
   )
 
 (cl-defstruct (lenv-state)
   "The current envs state for a handler"
-  (id      nil   :type 'symbol :documentation "the same as the handler")
-  (status  nil   :type 'symbol :documentation "nil|setup|active")
-  (loc     nil   :type 'lenv-loc)
-  (locked  nil   :type 'bool)
-  (data    nil   :type 'list :documentation "a list for arbitrary data handlers can put")
-  (modeline nil  :type 'string)
+  (id       nil   :type 'symbol :documentation "the same as the handler")
+  (status   nil   :type 'symbol :documentation "nil|setup|active")
+  (loc      nil   :type 'lenv-loc)
+  (locked   nil   :type 'bool)
+  (data     nil   :type 'list :documentation "a list for arbitrary data handlers can put")
+  (modeline nil   :type 'string)
+  (headline nil   :type 'string)
   )
 
 (cl-defstruct (lenv-loc)
@@ -103,6 +105,7 @@ where rest are the data values  read from the relevant line in a .lenv file
   )
 
 ;;;###autoload (defalias 'librarian-envs-register! #'librarian--envs-register)
+
 ;;;###autoload (autoload 'librarian-envs-register! "librarian--envs")
 (defun lenv-register (id &rest args)
   " Register a new handler.
@@ -129,10 +132,12 @@ Either a librarian--envs-handler, or a plist to build one
   (setq args (plist-put args :stop     (upfun! (plist-get args :stop))))
   (setq args (plist-put args :teardown (upfun! (plist-get args :teardown))))
   (setq args (plist-put args :modeline (upfun! (plist-get args :modeline))))
+  (setq args (plist-put args :headline (upfun! (plist-get args :headline))))
   (apply #'make-lenv-handler :id id args)
   )
 
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
+
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
 (defun lenv-clear-registry (&optional force)
   (interactive)
@@ -272,8 +277,9 @@ pass a prefix arg to use ivy to manually select from registered handlers
                           collect
                           (funcall #'lenv-activate-handler (car vals) loc (cdr vals))))
     ;; Add modeline fn
-    (add-to-list 'global-mode-string
-                '(:eval (lenv-mode-line-fn)))
+    (add-to-list 'global-mode-string '(:eval (lenv-mode-line-fn)))
+
+    (add-hook 'prog-mode-hook #'librarian-env-minor-mode)
 
     (prog1
         ;; now activate
@@ -282,13 +288,15 @@ pass a prefix arg to use ivy to manually select from registered handlers
                  when valid for status  = (lenv-state-status state)
                  when valid for handler = (lenv-get-handler (lenv-state-id state))
                  when (and valid handler (eq status 'nil)) do
-                 ;; run setup and set modeline
+                 ;; run setup
                  (--if-let (lenv-handler-setup handler) (apply it state (lenv-state-data state)))
                  (setf (lenv-state-status state) 'setup)
                  when (and valid handler (eq status 'setup)) do
-                 ;; run start
+                 ;; run start, setting modeline
                  (--if-let (lenv-handler-start handler)    (apply it state (lenv-state-data state)))
                  (--if-let (lenv-handler-modeline handler) (setf (lenv-state-modeline state)
+                                                                 (apply it state (lenv-state-data state))))
+                 (--if-let (lenv-handler-headline handler) (setf (lenv-state-headline state)
                                                                  (apply it state (lenv-state-data state))))
                  (setf (lenv-state-status state) 'active)
                  ;; collect them to return
@@ -303,6 +311,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload (defalias 'librarian-envs-stop! #'librarian--envs-stop)
+
 ;;;###autoload (autoload 'librarian--envs-stop "librarian--envs")
 (defun lenv-stop (arg &rest ids)
   (interactive "P")
@@ -333,11 +342,13 @@ pass a prefix arg to use ivy to manually select from registered handlers
                  for valid = (and state (lenv-state-p state) (not (lenv-state-locked state)))
                  when valid for status = (lenv-state-status state)
                  when valid for handler = (lenv-get-handler (lenv-state-id state))
-                 ;; Deactivate
+                 ;; Deactivate, removing from modeline
                  when (and valid handler (eq status 'active)) do
                  (--if-let (lenv-handler-stop handler)     (apply it state (lenv-state-data state)))
                  (setf (lenv-state-status state) 'setup
-                       (lenv-state-modeline state) nil)
+                       (lenv-state-modeline state) nil
+                       (lenv-state-headline state) nil
+                       )
                  ;; or Teardown
                  when (and valid handler (eq status 'setup)) do
                  (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state)))
@@ -354,6 +365,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload (defalias 'librarian-envs-toggle-lock! #'librarian--envs-toggle-lock)
+
 ;;;###autoload (autoload 'librarian--envs-toggle-lock "librarian--envs")
 (defun lenv-toggle-lock (&rest rest)
   "Toggle whether the environment can be changed or not"
@@ -374,6 +386,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 ;;;###autoload (defalias 'librarian-envs-report! #'librarian--envs-report)
+
 ;;;###autoload (autoload 'librarian--envs-report "librarian--envs")
 (defun lenv-report ()
   "Display a report of all registered environments, and which are activated "
@@ -413,6 +426,40 @@ pass a prefix arg to use ivy to manually select from registered handlers
   )
 
 
+(defun lenv-head-line-fn ()
+  " A function for formatting active environment strings for the head line "
+  (-if-let (segmets (cl-loop for state being the hash-values of lenv-active
+                               when (lenv-state-headline state)
+                               collect (lenv-state-headline state)
+                               ))
+      (format "%s" (string-join segments " "))
+    ""
+    ;; (format "%s" (doom-modeline-segment--check))
+    )
+  )
+
+(define-minor-mode librarian-env-minor-mode
+  "Minor mode to enable librarian-specific local hooks for buffers.
+
+eg: Setting head-line-format
+"
+  :lighter "LEnv-m"
+  )
+
+(defun lenv-head-activator ()
+  "Adds to the buffer local header-line-format"
+  (let* ((states (hash-table-values lenv-active))
+         )
+    (cl-loop for state in states
+             for headline = (lenv-state-headline state)
+             if headline
+             do
+             (add-to-list 'header-line-format headline)
+             )
+    )
+  )
+
+(add-hook 'librarian-env-minor-mode-hook #'lenv-head-activator)
 (provide 'librarian--envs)
 
 ;;-- Footer
