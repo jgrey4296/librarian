@@ -22,6 +22,8 @@
 
 (defvar lenv-registered (make-hash-table) "Mapping of env names to their structs")
 
+(defvar-local lenv-modeline-list (list))
+
 (defvar lenv-marker ".lenvs"
   "Marker files librarian will look for to determine the librarian-environment"
   )
@@ -34,6 +36,8 @@
   "*envs-handling*"
   "The buffer librarian puts report output into"
   )
+
+(defconst lenv-modeline-format '("(Env: " (:eval lenv-modeline-list) " )"))
 
 (defvar lenv-active (make-hash-table) "maps id -> activated handlers")
 
@@ -276,9 +280,8 @@ pass a prefix arg to use ivy to manually select from registered handlers
     (setq states (cl-loop for vals in specs
                           collect
                           (funcall #'lenv-activate-handler (car vals) loc (cdr vals))))
-    ;; Add modeline fn
-    (add-to-list 'global-mode-string '(:eval (lenv-mode-line-fn)))
-
+    ;; Use the minor mode for modeline and headline modification:
+    (add-to-list 'global-mode-string lenv-modeline-format)
     (add-hook 'prog-mode-hook #'librarian-env-minor-mode)
 
     (prog1
@@ -356,6 +359,10 @@ pass a prefix arg to use ivy to manually select from registered handlers
                  (remhash (lenv-state-id state) lenv-active)
                  when t collect state
                  )
+      ;; If nothing active, clear the mode line
+      (unless (hash-table-values lenv-active)
+        (setq global-mode-string (remove lenv-modeline-format global-mode-string))
+        )
       ;; Run Exit hooks
       (run-hooks 'lenv-exit-hook)
       ;; Report
@@ -414,30 +421,6 @@ pass a prefix arg to use ivy to manually select from registered handlers
     )
 )
 
-(defun lenv-mode-line-fn ()
-  "A Function for formatting active environment strings for the modeline"
-  (-if-let (modelines (cl-loop for state being the hash-values of lenv-active
-                               when (lenv-state-modeline state)
-                               collect (lenv-state-modeline state)
-                               ))
-      (format "(Envs: %s)" (string-join modelines " "))
-    ""
-    )
-  )
-
-
-(defun lenv-head-line-fn ()
-  " A function for formatting active environment strings for the head line "
-  (-if-let (segmets (cl-loop for state being the hash-values of lenv-active
-                               when (lenv-state-headline state)
-                               collect (lenv-state-headline state)
-                               ))
-      (format "%s" (string-join segments " "))
-    ""
-    ;; (format "%s" (doom-modeline-segment--check))
-    )
-  )
-
 (define-minor-mode librarian-env-minor-mode
   "Minor mode to enable librarian-specific local hooks for buffers.
 
@@ -446,6 +429,20 @@ eg: Setting head-line-format
   :lighter "LEnv-m"
   )
 
+(defun lenv-mode-activator ()
+  """ adds to the modeline var """
+  (let* ((states (hash-table-values lenv-active))
+         )
+    (cl-loop for state in states
+             for headline = (lenv-state-modeline state)
+             if headline
+             do
+             (add-to-list 'lenv-modeline-list " ")
+             (add-to-list 'lenv-modeline-list headline)
+             )
+    )
+  )
+  
 (defun lenv-head-activator ()
   "Adds to the buffer local header-line-format"
   (let* ((states (hash-table-values lenv-active))
@@ -460,6 +457,8 @@ eg: Setting head-line-format
   )
 
 (add-hook 'librarian-env-minor-mode-hook #'lenv-head-activator)
+(add-hook 'librarian-env-minor-mode-hook #'lenv-mode-activator)
+
 (provide 'librarian--envs)
 
 ;;-- Footer
