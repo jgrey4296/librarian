@@ -28,17 +28,17 @@
 (defun librarian-words-definition (identifier &optional arg)
   "Look up the definition of the word at point (or selection)."
   (interactive
-   (list (or (librarian-get 'word)
+   (list (or (librarian--util-get 'word)
              (read-string "Look up in dictionary: "))
          current-prefix-arg))
   (message "Looking up dictionary definition for %S" identifier)
-  (funcall liw--lookup-fn identifier)
+  (funcall liw--lookup-define-fn identifier)
   )
 
 (defun librarian-words-synonyms (identifier &optional _arg)
   "Look up and insert a synonym for the word at point (or selection)."
   (interactive
-   (list (librarian-get 'word) ; TODO actually use this
+   (list (librarian--util-get 'word) ; TODO actually use this
          current-prefix-arg))
   (message "Looking up synonyms for %S" identifier)
   (funcall liw--lookup-synonyms-fn identifier)
