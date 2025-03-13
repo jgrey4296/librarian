@@ -55,7 +55,7 @@
 ;;;###autoload (autoload 'librarian-minor-mode "librarian")
 (define-minor-mode lib-mode
   "An interface for controlling lookups, spelling, documentation, online search"
-  :lighter (:eval (format "Browser: %s" librarian-default-browser))
+  :lighter "Librarian"
   :keymap librarian-mode-map
   )
 
