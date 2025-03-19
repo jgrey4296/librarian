@@ -18,32 +18,30 @@
                              )
   "Valid Types of Lookup commands that can be registered")
 
-(defvar lid-definition-defaults '(
-                                  librarian-backend--words-dictionary
-                                  librarian-backend--xref-definitions
-                                  librarian-backend--dumb-jump
-                                  librarian-backend--project-search
-                                  librarian-backend--evil-goto-def
-                                  )
-  "The default handler list for looking up definitions "
+(defvar lid-default-handlers
+  '(
+    (:definition
+     #'librarian-backend--words-dictionary
+     #'librarian-backend--xref-definitions
+     #'librarian-backend--dumb-jump
+     #'librarian-backend--project-search
+     #'librarian-backend--evil-goto-def
+     )
+    (:references
+     #'librarian-backend--words-thesaurus
+     #'librarian-backend--xref-references
+     #'librarian-backend--project-search
+     )
+
+    )
+    "plist of default handlers for lid-handlers-plist"
+    )
+
+(defvar-local lid-handlers-plist nil
+  "Local plist of lookup handlers for documentation
+Valid keys are lid-valid-keywords
+"
   )
-
-(defvar lid-references-defaults '(
-                                  librarian-backend--words-thesaurus
-                                  librarian-backend--xref-references
-                                  librarian-backend--project-search
-                                  )
-  "The default list of handlers for looking up references"
-  )
-
-(defvar lid-declaration-defaults nil
-  "the default list of handlers for looking up declarations")
-
-(defvar lid-implementations-defaults nil
-  "the default list of handlers for looking up implementations")
-
-(defvar lid-type-definition-defaults nil
-  "the default list of handlers for looking up definitions")
 
 (defun lid-declare-type (type)
   "TODO : declare a new keyword for lookup instructions"
@@ -54,15 +52,7 @@
   )
 
 (defun lid-init-defaults ()
-  (setq-default lid-assignments-functions     nil
-                lid-declaration-functions     nil
-                lid-definition-functions      nil
-                lid-documentation-functions   nil
-                lid-file-functions            nil
-                lid-implementations-functions nil
-                lid-references-functions      nil
-                lid-type-definition-functions nil
-                )
+  nil
   )
 
 (defun lid--go (type id &optional overridefn)
@@ -101,17 +91,7 @@
   )
 
 (defun lid--run-handler (prop identifier)
-  (let* ((handlers (pcase prop
-                     (:assignments     lid-assignments-functions)
-                     (:declaration     lid-declaration-functions)
-                     (:definition      lid-definition-functions)
-                     (:documentation   lid-documentation-functions)
-                     (:file            lid-file-functions)
-                     (:implementations lid-implementations-functions)
-                     (:references      lid-references-functions)
-                     (:type-definition lid-type-definition-functions)
-                     (_ (user-error "Unrecognized lookup prop" prop))
-                     ))
+  (let* ((handlers (plist-get lid-handlers-plist prop))
          selected-handler
          )
     ;; Select just one handler:
@@ -128,6 +108,18 @@
     (if (commandp selected-handler)
         (call-interactively selected-handler)
       (funcall selected-handler identifier))
+    )
+  )
+
+(defun lid-update-handler (prop fns)
+  " Add handlers to a specific handler type "
+  (let* ((orig (plist-get lid-handlers-plist prop))
+         (merged (cl-remove-duplicates (append fns orig)))
+
+         )
+    (plist-put (buffer-local-value 'lid-handlers-plist (current-buffer))
+               prop merged
+               )
     )
   )
 

@@ -104,23 +104,14 @@
    registered url handlers
    "
   (interactive)
-  (let ((handlers (list
-                   (cons :assignments     librarian--doc-assignments-functions)
-                   (cons :definition      librarian--doc-definition-functions)
-                   (cons :declaration     librarian--doc-declaration-functions)
-                   (cons :documentation   librarian--doc-documentation-functions)
-                   (cons :file            librarian--doc-file-functions)
-                   (cons :implementations librarian--doc-implementations-functions)
-                   (cons :references      librarian--doc-references-functions)
-                   (cons :type-definition librarian--doc-type-definition-functions)
-                   ))
+  (let ((handlers (cl-loop for prop in librarian--doc-valid-keywords
+                           for fns = (plist-get librarian--doc-handlers-plist prop)
+                           collect
+                           (format "%-25s: %s" prop fns)
+                           ))
         )
     (message (format "Lookup Handlers Are:\n%s"
-                     (string-join (mapcar #'(lambda (x)
-                                              (format "%-25s : %s" (car x) (cdr x)))
-                                          handlers) "\n")
-                     )
-             )
+                     (string-join handlers "\n")))
     )
   )
 
