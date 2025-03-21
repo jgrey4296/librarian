@@ -19,11 +19,6 @@
 (unless (boundp 'counsel-search-engine)    (defvar counsel-search-engine nil))
 (unless (boundp 'ivy-initial-inputs-alist) (defvar ivy-initial-inputs-alist nil))
 
-(defun lib---browser-amazon (url &rest args)
-  ;; TODO Handle US and UK
-  (signal 'browse-todo url)
-  )
-
 (defun lib---online-google (query)
   "Search Google, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
