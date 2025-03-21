@@ -64,10 +64,11 @@ Valid keys are lid-valid-keywords
   (let* ((orig (plist-get lid-handlers-plist prop))
          (merged (cl-remove-duplicates (append fns orig)))
          )
-    (plist-put (buffer-local-value 'lid-handlers-plist (current-buffer))
-               prop
-               fns
-               )
+    (setq-local lid-handlers-plist
+                (plist-put lid-handlers-plist
+                           prop
+                           merged
+                           ))
     )
   )
 

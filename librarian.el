@@ -105,7 +105,9 @@
    "
   (interactive)
   (let ((handlers (cl-loop for prop in librarian--doc-valid-keywords
-                           for fns = (plist-get librarian--doc-handlers-plist prop)
+                           for fns = (plist-get
+                                      librarian--doc-handlers-plist
+                                      prop)
                            collect
                            (format "%-25s: %s" prop fns)
                            ))
