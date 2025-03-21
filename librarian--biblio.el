@@ -20,7 +20,7 @@
 
 (defvar lib-unsourced-bib-file "" "target unsourced bib file")
 
-(defconst lib-meta-buffer "*Metadata*")
+(defconst lib-meta-buffer "* Metadata*")
 
 (defconst lib-meta-program "ebook-meta")
 

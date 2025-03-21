@@ -4,7 +4,7 @@
   (require 'eww)
   )
 
-(defconst lib-buffer-name "*librarian browser*")
+(defconst lib-buffer-name "* librarian browser*")
 
 (defvar lib-default "eww")
 
