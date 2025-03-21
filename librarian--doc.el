@@ -19,23 +19,24 @@
   "Valid Types of Lookup commands that can be registered")
 
 (defvar lid-default-handlers
-  '(
-    (:definition
+  (list
+    :definition
+    (list
      #'librarian-backend--words-dictionary
      #'librarian-backend--xref-definitions
      #'librarian-backend--dumb-jump
      #'librarian-backend--project-search
      #'librarian-backend--evil-goto-def
      )
-    (:references
+    :references
+    (list
      #'librarian-backend--words-thesaurus
      #'librarian-backend--xref-references
      #'librarian-backend--project-search
      )
-
     )
-    "plist of default handlers for lid-handlers-plist"
-    )
+  "plist of default handlers for lid-handlers-plist"
+  )
 
 (defvar-local lid-handlers-plist nil
   "Local plist of lookup handlers for documentation
@@ -44,15 +45,61 @@ Valid keys are lid-valid-keywords
   )
 
 (defun lid-declare-type (type)
-  "TODO : declare a new keyword for lookup instructions"
+  "Add a new type of lookup handler"
+  (cl-assert (keywordp type))
+  (push type lid-valid-keywords)
   )
 
 (defun lid-valid-type-p (type)
+  "Check the given kwd is a valid handler type"
   (and (keywordp type) (-contains-p lid-valid-keywords type))
   )
 
+(defun lid-update-handler (prop fns)
+  " Add handlers to a specific handler type, buffer locally "
+  (cl-assert (listp fns))
+  (cl-assert (lid-valid-type-p prop))
+  (cl-assert (plistp lid-handlers-plist))
+  ;; (message "Updating: %s : %s : %s" prop fns (type-of fns))
+  (let* ((orig (plist-get lid-handlers-plist prop))
+         (merged (cl-remove-duplicates (append fns orig)))
+         )
+    (plist-put (buffer-local-value 'lid-handlers-plist (current-buffer))
+               prop
+               fns
+               )
+    )
+  )
+
 (defun lid-init-defaults ()
-  nil
+  (cl-assert (plistp lid-default-handlers))
+  (setq-default lid-handlers-plist (seq-copy lid-default-handlers))
+  )
+
+(defun lid--run-handler (prop identifier)
+  " for a prop kwd in lid-handlers-plist, get the handlers
+and call the first one with identifier
+
+TODO: keep trying handlers till one succeeds
+"
+  (cl-assert (lid-valid-type-p prop))
+  (let* ((handlers (plist-get lid-handlers-plist prop))
+         (selected-handler (pcase handlers
+                             ('nil (user-error "No Handler Found for: %s" prop))
+                             ((and x (pred listp)) (car-safe handlers))
+                             ((and x (pred functionp)) x)
+                             (x (user-error "Handler is not a function: %s" x))
+                             ))
+         )
+    ;; Run the Handler:
+    (pcase selected-handler
+      ((and x (pred commandp))
+       (call-interactively selected-handler))
+      ((and x (pred functionp))
+       (funcall x identifier))
+      (x (user-error "Handler isn't a function: %s" x))
+      )
+    )
   )
 
 (defun lid--go (type id &optional overridefn)
@@ -87,39 +134,6 @@ Valid keys are lid-valid-keywords
           result)
       ;; unwind if something fails
       (set-marker origin nil))
-    )
-  )
-
-(defun lid--run-handler (prop identifier)
-  (let* ((handlers (plist-get lid-handlers-plist prop))
-         selected-handler
-         )
-    ;; Select just one handler:
-    (pcase handlers
-      ('nil (user-error "No Handler Found for: %s" prop))
-      ((and (pred listp) (pred (lambda (x) (< 1 (length x)))))
-       (setq selected-handler (car handlers))
-       )
-      ((pred listp)
-       (setq selected-handler (car handlers)))
-      (_ (setq selected-handler handlers))
-      )
-    ;; Run the Handler:
-    (if (commandp selected-handler)
-        (call-interactively selected-handler)
-      (funcall selected-handler identifier))
-    )
-  )
-
-(defun lid-update-handler (prop fns)
-  " Add handlers to a specific handler type "
-  (let* ((orig (plist-get lid-handlers-plist prop))
-         (merged (cl-remove-duplicates (append fns orig)))
-
-         )
-    (plist-put (buffer-local-value 'lid-handlers-plist (current-buffer))
-               prop merged
-               )
     )
   )
 
