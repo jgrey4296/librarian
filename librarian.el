@@ -44,6 +44,7 @@
 (require 'lib--insert)
 
 (librarian--doc-init-defaults)
+
 (defconst lib-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 
 (defconst lib-forbid-modes (list 'magit-mode))
@@ -104,19 +105,21 @@
    registered url handlers
    "
   (interactive)
-  (let ((handlers (cl-loop for prop in librarian--doc-valid-keywords
-                           for fns = (plist-get
-                                      librarian--doc-handlers-plist
-                                      prop)
-                           collect
-                           (format "%-25s: %s" prop fns)
-                           ))
-        )
-    (message (format "Lookup Handlers Are:\n%s"
-                     (string-join handlers "\n")))
+  (with-current-buffer (current-buffer)
+    (let ((handlers (cl-loop for prop in librarian--doc-valid-keywords
+                             for fns = (plist-get
+                                        librarian--doc-handlers-plist
+                                        prop)
+                             collect
+                             (format "%-25s: %s" prop fns)
+                             ))
+          )
+      (message (format "Lookup Handlers for \"%s\" are: \n%s"
+                       (buffer-name)
+                       (string-join handlers "\n")))
+      )
     )
-  )
-
+)
 (advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-xrefs)
 
 
