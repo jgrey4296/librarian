@@ -19,6 +19,8 @@
 (unless (boundp 'counsel-search-engine)    (defvar counsel-search-engine nil))
 (unless (boundp 'ivy-initial-inputs-alist) (defvar ivy-initial-inputs-alist nil))
 
+;;-- online search providers
+
 (defun lib---online-google (query)
   "Search Google, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
@@ -40,52 +42,7 @@
            (call-interactively #'counsel-search)
            t))))
 
-(defun lib---words-dictionary (identifier)
-  "Look up dictionary definition for IDENTIFIER."
-  (when (derived-mode-p 'text-mode)
-    (librarian-words-definition identifier)
-    'deferred))
-
-(defun lib---words-thesaurus (identifier)
-  "Look up synonyms for IDENTIFIER."
-  (when (derived-mode-p 'text-mode)
-    (librarian-synonyms identifier)
-    'deferred))
-
-(defun lib---dumb-jump (_identifier)
-  "Look up the symbol at point (or selection) with `dumb-jump', which conducts a
-project search with ag, rg, pt, or git-grep, combined with extra heuristics to
-reduce false positives.
-
-This backend prefers \"just working\" over accuracy."
-  (and (require 'dumb-jump nil t)
-       (dumb-jump-go)))
-
-(defun lib---project-search (identifier)
-  "Conducts a simple project text search for IDENTIFIER.
-
-Uses and requires `+ivy-file-search', `+helm-file-search', or `+vertico-file-search'.
-Will return nil if neither is available. These require ripgrep to be installed."
-  (unless identifier
-    (let ((query (rxt-quote-pcre identifier)))
-      (ignore-errors
-        (+ivy-file-search :query query)
-        t)
-      )
-    )
-  )
-
-(defun lib---evil-goto-def (_identifier)
-  "Uses `evil-goto-definition' to conduct a text search for IDENTIFIER in the
-current buffer."
-  (when (fboundp 'evil-goto-definition)
-    (ignore-errors
-      (cl-destructuring-bind (beg . end)
-          (bounds-of-thing-at-point 'symbol)
-        (evil-goto-definition)
-        (let ((pt (point)))
-          (not (and (>= pt beg)
-                    (<  pt end))))))))
+;;-- end online search providers
 
 (defun lib---ffap (identifier)
   "Tries to locate the file at point (or in active selection).
@@ -135,6 +92,7 @@ the browser."
                 old-bug-reference-prog-mode)
             (bug-reference-fontify (line-beginning-position) (line-end-position)))))))
 
+;;-- docsets
 (defun lib---docsets-dash (identifier)
   " This backend is meant for `librarian-documentation-functions'.
 Docsets can be searched directly via `librarian-docset-consult'."
@@ -151,6 +109,9 @@ the search engine to use."
   (librarian-online identifier
    (librarian--online-provider (not current-prefix-arg))))
 
+;;-- end docsets
+
+;;-- xref
 (defun lib---xref-show (fn identifier &optional show-fn)
   (let ((xrefs (funcall fn
                         (xref-find-backend)
@@ -178,6 +139,8 @@ the search engine to use."
   (condition-case _
       (lib---xref-show 'xref-backend-references identifier #'xref--show-xrefs)
     (cl-no-applicable-method nil)))
+
+;;-- end xref
 
 (provide 'librarian--backend)
 ;;; librarian-handlers.el ends here

@@ -43,8 +43,8 @@
            (setq lib-use-preview (not lib-use-preview)))
   )
 
-
 ;;;###autoload (defalias 'librarian-browse-open #'librarian--browse-open-url)
+
 ;;;###autoload (autoload 'librarian--browse-open-url "librarian--browse")
 (defun lib-open-url (url &rest args)
   " Find and call the appropriate browser program,
@@ -70,7 +70,6 @@ after `browse-url-handlers` have processed the url
   (sleep-for 2)
   ;; (lib-regain-focus)
   )
-
 
 (provide 'librarian--browse)
 ;; Local Variables:

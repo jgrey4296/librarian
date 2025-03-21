@@ -16,22 +16,29 @@ General controller for looking up words, documentation, and searching online
 - librarian-words           : access to dictionaries
 
 
-
 ## Browser Control
-Using `browse-url` and external browsers, and `eww`
+`librarian-browse-open` uses local file system calls, http browsers, and `eww`, to open the relevant program.
 
 ## Documentation Lookup
 Using `thingatpt`, `x-ref`, `eldoc`
 
 ## Docset lookup
-Using `dash` and `dash-docs`.
+`librarian-docsets-consult` are aliases over `dash-docs`.
 
 ## Online Search
-using `counsel-search` or `helm` into the selected browser above
+`librarian-online` uses `counsel-search` or `helm` into the selected browser above,
+while looking in `librarian--online-providers`, which are registered with `librarian--online-register-provider`.
+
 
 ## Spelling
-using `wordnut`, `helm-wordnut`, `powerthesaurus`, `synosaurus-wordnet`,
-`osx-dictionary`
+`librarian-words-definition` `librarian-words-synonyms` are facades over:
+- `wordnut`,
+- `synosaurus`,
+- `osx-dictionary`,
+- `define-word`,
+- `flyspell`,
+- `wordnut`
+- `helm-wordnet`
 
 ## Bibliography Search
 in `bibtex`

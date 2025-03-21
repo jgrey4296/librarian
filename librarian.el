@@ -87,11 +87,13 @@
                                             ("." . librarian--browse-open-url)
                                             )
               )
+        (advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-xrefs)
         )
     (progn ;; deactivating
       (global-librarian-regular-minor-mode -1)
       (global-librarian-tagging-mode -1)
       (setq browse-url-browser-function #'browse-url-default-browser)
+      (advice-remove #'ivy-xref-show-xrefs #'librarian--util-fix-ivy-xrefs)
       )
     )
   )
@@ -120,8 +122,6 @@
       )
     )
 )
-(advice-add #'ivy-xref-show-xrefs :around #'librarian--util-fix-ivy-xrefs)
-
 
 (provide 'librarian)
 ;;; librarian.el ends here

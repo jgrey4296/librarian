@@ -5,6 +5,15 @@
   (require 'wordnut)
   (require 'osx-dictionary nil t)
   (require 'define-word nil t)
+  (require 'flyspell)
+  (require 'ispell)
+  (require 'spell-fu)
+  (require 'flyspell-correct)
+  (require 'flyspell-correct-ivy)
+  (require 'flyspell-lazy)
+  (require 'company-ispell)
+  (require helm-wordnet)
+  (require 'powerthesaurus nil t)
   )
 
 (defvar liw-dictionary-prefer-offline nil)
@@ -17,9 +26,10 @@
         (t (lambda (x) (user-error "No dictionary backend is available"))):w
         )
   )
+(defvar liw--lookup-define-alt-fn #'helm-wordnet-suggest)
 
 (defvar liw--lookup-synonyms-fn
-  (cond ((and (featurep 'synosaurus) liw-dictionary-prefer-offline) #'synosaurus-choose-and-replace)
+  (cond ((featurep 'synosaurus) #'synosaurus-choose-and-replace)
         ((featurep 'powerthesaurus) #'powerthesaurus-lookup-word-dwim)
         (t (lambda (x) (user-error "No thesaurus backend is available")))
         )
@@ -32,7 +42,10 @@
              (read-string "Look up in dictionary: "))
          current-prefix-arg))
   (message "Looking up dictionary definition for %S" identifier)
-  (funcall liw--lookup-define-fn identifier)
+  (if arg
+      (funcall liw--lookup-define-alt-fn)
+    (funcall liw--lookup-define-fn identifier)
+    )
   )
 
 (defun librarian-words-synonyms (identifier &optional _arg)
@@ -41,7 +54,7 @@
    (list (librarian--util-get 'word) ; TODO actually use this
          current-prefix-arg))
   (message "Looking up synonyms for %S" identifier)
-  (funcall liw--lookup-synonyms-fn identifier)
+  (funcall liw--lookup-synonyms-fn)
   )
 
 (provide 'librarian--words)

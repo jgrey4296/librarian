@@ -6,8 +6,7 @@
   (require 'counsel-dash)
   )
 
-(unless (boundp 'dash-docs-docsets)
-  (defvar dash-docs-docsets nil))
+(defvar dash-docs-docsets)
 
 (defvar lid-defaults '(librarian--backend--docsets-dash
                        librarian--backend--docsets-online

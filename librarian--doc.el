@@ -22,15 +22,10 @@
   (list
     :definition
     (list
-     #'librarian-backend--words-dictionary
      #'librarian-backend--xref-definitions
-     #'librarian-backend--dumb-jump
-     #'librarian-backend--project-search
-     #'librarian-backend--evil-goto-def
      )
     :references
     (list
-     #'librarian-backend--words-thesaurus
      #'librarian-backend--xref-references
      #'librarian-backend--project-search
      )
