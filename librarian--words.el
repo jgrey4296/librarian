@@ -12,7 +12,7 @@
   (require 'flyspell-correct-ivy)
   (require 'flyspell-lazy)
   (require 'company-ispell)
-  (require helm-wordnet)
+  (require 'helm-wordnet)
   (require 'powerthesaurus nil t)
   )
 
