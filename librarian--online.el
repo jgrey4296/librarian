@@ -34,20 +34,30 @@ Target is either:
   (puthash name target lio-providers)
   )
 
-(defun lio-get-provider (&optional force-p)
+(defun lio-get-provider (&optional name force-p)
   "Get the provider to use,
 reuses the last provider
 Returns str or fn
  "
-  (when (or force-p (not lio--last-provider))
-    (let ((provname (completing-read "Search on: " lio-providers nil t)))
-      (setq lio--last-provider (cons provname (gethash provname lio-providers))))
-    )
+  (setq lio--last-provider
+        (cond (force-p
+               ;; force read
+               (let ((provname (completing-read "Search on: " lio-providers nil t)))
+                 (cons provname (gethash provname lio-providers))))
+              ((gethash name lio-providers)
+               ;; Provided name
+               (cons name (gethash name lio-providers)))
+              (lio--last-provider
+               lio--last-provider)
+              (t
+               (let ((provname (completing-read "Search on: " lio-providers nil t)))
+                 (cons provname (gethash provname lio-providers))))
+              ))
   lio--last-provider
   )
 
 ;;;###autoload
-(defun librarian-online (query provider)
+(defun librarian-online (query &optional provider noconfirm)
   "Look up QUERY in the browser using PROVIDER.
 When called interactively, prompt for a query and, when called for the first
 time, the provider from `lio-providers'. In subsequent calls, reuse
@@ -57,25 +67,25 @@ provider.
 QUERY must be a string, and PROVIDER must be a key of
 `lio-providers'."
   (interactive
-   (list (when (use-region-p) (librarian--util-get))
-         (lio-get-provider current-prefix-arg)))
+   (list (when (use-region-p) (librarian--util-get))))
   ;;
-  (unless provider
-    (user-error "No available online lookup backend for %S provider" provider))
   (let* ((thing (thing-at-point 'symbol t))
-         (provname (car provider))
-         (provtarg (cdr provider))
+         (provider (lio-get-provider provider current-prefix-arg))
+         (provname (car-safe provider))
+         (provtarg (cdr-safe provider))
          )
+    (unless provider
+      (user-error "No available online lookup backend for %S provider" provider))
     (cond ((functionp provtarg)
            (funcall provtarg (or query thing)))
-          ((stringp provtarg)
+          (noconfirm
            (funcall lio--open-url-fn
-                    (url-encode-url
-                     (format provtarg
-                             (read-string
-                              (format "Search for (on %s): " provname)
-                              (or query thing)))))
-           )
+                    (url-encode-url (format provtarg (or query thing)))))
+          ((stringp provtarg)
+           (let ((val (read-string (format "Search for (on %s): " provname) (or query thing)))
+                 )
+                 (funcall lio--open-url-fn
+                          (url-encode-url (format provtarg val)))))
           (_ (user-error "Unknown provider target type: %s -> %s :: %s"
                          provname provtarg (type-of provtarg)))
           )
@@ -113,7 +123,7 @@ QUERY must be a string, and PROVIDER must be a key of
 reuse it on consecutive uses of this command. If BANG, always prompt for search
 engine."
   (interactive "<a><!>")
-  (librarian-online query (lio-get-provider bang))
+  (librarian-online query (lio-get-provider nil bang))
   )
 
 (provide 'librarian--online)

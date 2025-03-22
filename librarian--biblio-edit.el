@@ -484,9 +484,9 @@ With arg, searchs the dplp instead.
          (exact-string (s-join " " (mapcar #'(lambda (x) (format "\"%s\"" x))
                                            (-filter #'(lambda (x) (not (string-empty-p x))) exact-texts))))
          (all-terms (s-concat exact-string " " (s-join " " search-texts)))
-         (cleaned (s-replace-regexp "{.+?\\(\\w\\)}" "\\1" all-terms))
+         (cleaned (s-trim (s-replace-regexp "{.+?\\(\\w\\)}" "\\1" all-terms)))
          )
-    (librarian-online cleaned "Scholar")
+    (librarian-online cleaned "Scholar" t)
     )
   )
 
