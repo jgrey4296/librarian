@@ -10,7 +10,7 @@
   (require 's)
   (require 'bibtex)
   (require 'bibtex-completion)
-  (require 'org-ref-bibtex)
+  (require 'org-ref)
   (require 'macro-tools--processes)
   )
 
