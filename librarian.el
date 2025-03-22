@@ -33,7 +33,6 @@
 (require 'lib--docsets)
 (require 'lib--doc)
 (require 'lib--envs)
-(require 'lib--file)
 (require 'lib--man)
 (require 'lib--online)
 (require 'lib--regular)
