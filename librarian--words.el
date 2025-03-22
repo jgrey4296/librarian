@@ -3,17 +3,19 @@
 (eval-when-compile
   (require 'synosaurus)
   (require 'wordnut)
-  (require 'osx-dictionary nil t)
-  (require 'define-word nil t)
   (require 'flyspell)
   (require 'ispell)
   (require 'spell-fu)
   (require 'flyspell-correct)
   (require 'flyspell-correct-ivy)
   (require 'flyspell-lazy)
-  (require 'company-ispell)
   (require 'helm-wordnet)
+
+  ;; optional
+  (require 'osx-dictionary nil t)
+  (require 'define-word nil t)
   (require 'powerthesaurus nil t)
+  (require 'company-ispell nil t)
   )
 
 (defvar liw-dictionary-prefer-offline nil)
