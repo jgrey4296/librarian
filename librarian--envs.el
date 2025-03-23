@@ -436,9 +436,8 @@ eg: Setting head-line-format
     (cl-loop for state in states
              for headline = (lenv-state-modeline state)
              if headline
-             do
-             (add-to-list 'lenv-modeline-list " ")
-             (add-to-list 'lenv-modeline-list headline)
+             do (add-to-list 'lenv-modeline-list " ")
+             and do (add-to-list 'lenv-modeline-list headline)
              )
     )
   )
