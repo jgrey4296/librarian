@@ -70,14 +70,20 @@
     )
   )
 
-(defun litm-cache-global-tags (new)
-  "Called with new tags to update the global tags hashtable"
-  (let ((delta (lit-get-delta new)))
-    (cl-loop for tag in (car delta)
+(defun litm-cache-misses (maybes)
+  "Get tags being added which aren't in the global cache"
+  (-reject (-rpartial #'gethash librarian--tag-global-tags nil) maybes)
+  )
+
+(defun litm-cache-update-global-tags (update)
+  "Called with new tags to update the global tags hashtable "
+  (let ((delta (lit-get-delta update))
+        )
+    (cl-loop for tag in (car delta) ;; increment these
              do
              (puthash tag (1+ (gethash tag lit-global-tags 0)) lit-global-tags)
              )
-    (cl-loop for tag in (cadr delta)
+    (cl-loop for tag in (cadr delta) ;; subtract these
              do
              (puthash tag (1- (gethash tag lit-global-tags 1)) lit-global-tags)
              )
@@ -91,10 +97,12 @@ and `librarian-set-new-tags'.
 
 Can set multiple sections of entries, moving by `evil-backward-section-begin'
 
+Returns a list of normalized, new tags that were not in the global cache
  "
   (save-excursion
-    (let ((new (librarian-normalize-tags major-mode new))
-          start-pos
+    (let* ((new (librarian-normalize-tags major-mode new))
+           (cache-misses (litm-cache-misses new))
+           start-pos
           )
       (cond ((eq evil-state 'visual)
              (setq start-pos evil-visual-beginning)
@@ -113,13 +121,14 @@ Can set multiple sections of entries, moving by `evil-backward-section-begin'
                         (lit-get-delta new)
                         ))
               )
+        (litm-cache-update-global-tags new)
         (librarian-cache-tags major-mode new)
-        (litm-cache-global-tags new)
         (librarian-backward-entry major-mode)
         )
+      cache-misses
       )
     )
-)
+  )
 
 (defun litm-get-tags ()
   "Utility action to get tags for current entry.

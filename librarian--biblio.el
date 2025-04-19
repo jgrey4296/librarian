@@ -82,7 +82,8 @@
   (interactive)
   (setq bibtex-completion-bibliography (directory-files lib-library-loc 't "\.bib$"))
   (bibtex-completion-clear-cache)
-  (bibtex-completion-init)
+  (bibtex-completion-init) ;; compile bibtex-completion-display-formats
+  ;; TODO: replace this with a non-blocking parse
   (bibtex-completion-candidates)
   )
 
