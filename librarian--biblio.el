@@ -76,7 +76,7 @@
                           ("category  " . "--category=")
                           ("*Apply*")))
 
-;;;###autoload (autoload 'librarian--biblio-build-list "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-build-list "librarian--biblio" nil t)
 (defun lib-build-list ()
   "Build a list of all bibtex files to use for bibtex-helm "
   (interactive)
@@ -97,7 +97,7 @@
         )
     )
 
-;;;###autoload (autoload 'librarian--biblio-meta-retrieval "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-meta-retrieval "librarian--biblio" nil t)
 (defun lib-meta-retrieval ()
   " Use 'lib-meta-program to retrieve metadata about files in current bibtex entry "
   (interactive)
@@ -197,7 +197,7 @@
     )
   )
 
-;;;###autoload (autoload 'librarian--biblio-set-ebook-cover "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-set-ebook-cover "librarian--biblio" nil t)
 (defun lib-set-ebook-cover ()
   " Use Calibre's ebook-meta program to select an image and apply it as an epub's cover image "
   (interactive)
@@ -217,7 +217,7 @@
     )
   )
 
-;;;###autoload (autoload 'librarian--biblio-update-entry "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-update-entry "librarian--biblio" nil t)
 (defun lib-update-entry ()
   " Update an entry using the doi's online data "
   (interactive)
@@ -226,7 +226,7 @@
     )
   )
 
-;;;###autoload (autoload 'librarian--biblio-insert-entry-from-doi "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-insert-entry-from-doi "librarian--biblio" nil t)
 (defun lib-insert-entry-from-doi ()
   "Create an entry from a doi"
   (interactive)
@@ -315,7 +315,7 @@ returns the new location
     )
   )
 
-;;;###autoload (autoload 'librarian-biblio-refile-by-year "librarian--biblio")
+;;;###autoload (autoload 'librarian-biblio-refile-by-year "librarian--biblio" nil t)
 (defun lib-refile-by-year ()
   " Kill the current entry and insert it in the appropriate year's bibtex file
 Then move the pdfs of the entry to the canonical location
@@ -344,7 +344,7 @@ Then move the pdfs of the entry to the canonical location
     )
   )
 
-;;;###autoload (autoload 'librarian--biblio-refile-to-unsourced "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-refile-to-unsourced "librarian--biblio" nil t)
 (defun lib-refile-to-unsourced ()
   " Kill the current entry and insert it in the appropriate year's bibtex file "
   (interactive)
@@ -364,7 +364,7 @@ Then move the pdfs of the entry to the canonical location
     )
 )
 
-;;;###autoload (autoload 'librarian--biblio-refile-to-other-window "librarian--biblio")
+;;;###autoload (autoload 'librarian--biblio-refile-to-other-window "librarian--biblio" nil t)
 (defun lib-refile-to-other-window ()
   "Refile the entry under point to the other window"
   (interactive)

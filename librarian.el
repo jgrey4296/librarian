@@ -188,7 +188,7 @@
 (defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
 
 ;;;###autoload
-(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
+(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-refile-to-other-window)
 
 ;;;###autoload
 (defalias 'librarian-docsets-install                 #'counsel-dash-install-docset)
