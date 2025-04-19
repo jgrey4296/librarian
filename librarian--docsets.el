@@ -59,11 +59,6 @@ install it if necessary)."
         (librarian-install-docset selected)))
     (librarian-docset-consult query selected)))
 
-;;; public aliases
-
-;;;###autoload
-(defalias 'librarian-docsets-install #'counsel-dash-install-docset)
-
 (provide 'librarian--docsets)
 ;; Local Variables:
 ;; read-symbol-shorthands: (

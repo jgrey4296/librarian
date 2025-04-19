@@ -186,8 +186,6 @@ returns the list of tags extracted
         )
   )
 
-;; Public Aliases
-
 (provide 'librarian--tag-mode)
 ;;; librarian-tag-mode.el ends here
 ;; Local Variables:

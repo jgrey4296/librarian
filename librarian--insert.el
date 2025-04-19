@@ -37,7 +37,6 @@
     )
   )
 
-;;;###autoload (defalias 'librarian-insert-clear-caches #'librarian--insert-clear-caches)
 ;;;###autoload (autoload 'librarian--insert-clear-caches "librarian--insert")
 (defun lib-clear-caches ()
   "Clear and Rebuild the cache"
@@ -85,7 +84,6 @@ Splits the result by '#'
   (insert (car (split-string x "#" t " +")))
   )
 
-;;;###autoload (defalias 'librarian-insert-trigger #'librarian--insert-trigger)
 ;;;###autoload (autoload 'librarian--insert-trigger "librarian--insert")
 (defun lib-trigger ()
   " Entry ivy for insertions "
@@ -119,7 +117,6 @@ Splits the result by '#'
     )
   )
 
-;;;###autoload (defalias 'librarian-insert-register-processor #'librarian--insert-register-processor)
 ;;;###autoload (autoload 'librarian--insert-register-processor  "librarian--insert")
 (defun lib-register-processor (mode key fn)
     "For a {mode} and a {key} group of inserts in that mode,
@@ -144,7 +141,6 @@ fn is (lambda (str) (insert str))
     )
   )
 
-;;;###autoload (defalias 'librarian-insert-minor-mode #'librarian--insert-minor-mode)
 ;;;###autoload (autoload 'librarian--insert-minor-mode "librarian--insert")
 (define-minor-mode lib-minor-mode
   " Generalized insert mode for simple strings"
@@ -152,10 +148,6 @@ fn is (lambda (str) (insert str))
   :lighter "lib-"
   (lib-build-cache)
 )
-
-;;; Public Aliases
-
-(defvaralias 'librarian-insert-loc 'lib-location)
 
 (provide 'librarian--insert)
 ;; Local Variables:

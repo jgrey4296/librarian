@@ -92,7 +92,6 @@ Use librarian-regular-go to choose one of those urls and jump to it
 ;;;###autoload
 (define-globalized-minor-mode global-librarian-regular-minor-mode librarian-regular-minor-mode lib-minor-mode/turn-on)
 
-;;;###autoload (defalias 'librarian-regular-go! #'librarian--regular-go)
 ;;;###autoload (autoload 'librarian--regular-go "librarian--regular")
 (defun lib-go ()
   " suggest a list of regular urls to browse to "
@@ -109,17 +108,12 @@ Use librarian-regular-go to choose one of those urls and jump to it
             )
 )
 
-;;;###autoload (defalias 'librarian-regular-clear! #'librarian--regular-clear)
 ;;;###autoload (autoload 'librarian--regular-clear "librarian--regular")
 (defun lib-clear ()
   " Clear the cache of librarian-regular "
   (interactive)
   (clrhash lib-cache)
   )
-
-;;;; Public Aliases
-
-(defvaralias 'librarian-regular-loc 'librarian--regular-location)
 
 (provide 'librarian--regular)
 ;;; librarian-regular.el ends here

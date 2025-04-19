@@ -122,6 +122,79 @@
     )
 )
 
+;;-- public aliases
+
+;;;###autoload
+(defvaralias 'librarian-biblio-buffer      'librarian--biblio-meta-buffer)
+
+;;;###autoload
+(defvaralias 'librarian-biblio-program     'librarian--biblio-meta-program)
+
+;;;###autoload
+(defvaralias 'librarian-bibio-args         'librarian--biblio-meta-opts)
+
+;;;###autoload
+(defvaralias 'librarian-biblio-library-loc 'librarian--biblio-library-loc)
+
+;;;###autoload
+(defvaralias 'librarian-biblio-pdf-loc     'librarian--biblio-pdf-loc)
+
+;;;###autoload
+(defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
+
+;;;###autoload
+(defvaralias 'librarian-insert-loc 'lib-location)
+
+;;;###autoload
+(defvaralias 'librarian-regular-loc 'librarian--regular-location)
+
+;;;###autoload
+(defalias 'librarian-regular-clear!                  #'librarian--regular-clear)
+
+;;;###autoload
+(defalias 'librarian-regular-go!                     #'librarian--regular-go)
+
+;;;###autoload
+(defalias 'librarian-insert-minor-mode               #'librarian--insert-minor-mode)
+
+;;;###autoload
+(defalias 'librarian-insert-register-processor       #'librarian--insert-register-processor)
+
+;;;###autoload
+(defalias 'librarian-insert-trigger                  #'librarian--insert-trigger)
+
+;;;###autoload
+(defalias 'librarian-insert-clear-caches             #'librarian--insert-clear-caches)
+
+;;;###autoload
+(defalias 'librarian-biblio-build-file-list          #'librarian--bibio-build-list)
+
+;;;###autoload
+(defalias 'librarian-biblio-get-meta                 #'librarian--biblio-meta-retrieval)
+
+;;;###autoload
+(defalias 'librarian-biblio-set-cover                #'librarian--biblio-set-ebook-cover)
+
+;;;###autoload
+(defalias 'librarian-biblio-update-entry-from-doi    #'librarian--biblio-update-entry)
+
+;;;###autoload
+(defalias 'librarian-biblio-create-from-doi          #'librarian--biblio-insert-entry-from-doi)
+
+;;;###autoload
+(defalias 'librarian-biblio-refile-to-canonical      #'librarian--biblio-refile-by-year)
+
+;;;###autoload
+(defalias 'librarian-biblio-refile-to-unsourced      #'librarian--biblio-refile-to-unsourced)
+
+;;;###autoload
+(defalias 'librarian-biblio-refile-to-other-window   #'librarian--biblio-to-other-window)
+
+;;;###autoload
+(defalias 'librarian-docsets-install                 #'counsel-dash-install-docset)
+
+;;-- end public aliases
+
 (provide 'librarian)
 ;;; librarian.el ends here
 ;; Local Variables:
