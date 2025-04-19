@@ -371,7 +371,7 @@ Then move the pdfs of the entry to the canonical location
   (unless (save-selected-window (other-window 1) (eq major-mode 'bibtex-mode))
     (user-error "Other Window Is Not a Bibtex Buffer"))
   (save-excursion (libu-copy-entry))
-  (save-selected-window (other-window 2)
+  (save-selected-window (other-window 1)
                         (end-of-buffer)
                         (newline-and-indent)
                         (yank)
