@@ -143,12 +143,6 @@
 (defvaralias 'librarian-biblio-unsourced-loc 'librarian--biblio-unsourced-bib-file)
 
 ;;;###autoload
-(defvaralias 'librarian-insert-loc 'lib-location)
-
-;;;###autoload
-(defvaralias 'librarian-regular-loc 'librarian--regular-location)
-
-;;;###autoload
 (defalias 'librarian-regular-clear!                  #'librarian--regular-clear)
 
 ;;;###autoload

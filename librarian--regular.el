@@ -35,30 +35,30 @@
 
 (defvar lib-cache (make-hash-table))
 
-(defvar lib-location nil)
+(defvar librarian-regular-loc nil)
 
 (defvar-local lib-targets nil)
 
 ;;;###autoload
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
-files of urls in lib-location,
+files of urls in librarian-regular-loc,
 Use librarian-regular-go to choose one of those urls and jump to it
  "
   :init-value nil
   :lighter "lib-regular"
   ;; :global t
   :keymap nil
-  (if (or (not lib-location) (not (f-exists? lib-location)))
-      (message "Lib-Regular location doesn't exist: %s" lib-location)
+  (if (or (not librarian-regular-loc) (not (f-exists? librarian-regular-loc)))
+      (message "Lib-Regular location doesn't exist: %s" librarian-regular-loc)
     (setq-local lib-targets
                 ;; Loop for each active mode
                 (cl-remove-duplicates
                  (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
-                          for source-exists = (and lib-location (f-exists? (f-join lib-location (symbol-name mode))))
+                          for source-exists = (and librarian-regular-loc (f-exists? (f-join librarian-regular-loc (symbol-name mode))))
                           when (and source-exists (not (gethash mode lib-cache)))
                           do ;; load the source file
-                          (puthash mode (lib--load-file (f-join lib-location (symbol-name mode))) lib-cache)
+                          (puthash mode (lib--load-file (f-join librarian-regular-loc (symbol-name mode))) lib-cache)
                           ;; and construct the result list
                           when source-exists append (gethash mode lib-cache)
                           )

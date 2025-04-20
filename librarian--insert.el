@@ -20,7 +20,7 @@
   (declare-function parent-mode-list "parent-mode")
   )
 
-(defvar lib-location nil)
+(defvar librarian-insert-loc nil "Where Insert files are located")
 
 (defvar lib-cache     (make-hash-table :test 'equal))
 
@@ -58,16 +58,16 @@
                        '(fundamental-mode)
                        ))
         )
-    (when lib-location
+    (when librarian-insert-loc
       (setq-local lib-keys
                   (cl-loop for mode in modes
-                           for exists = (f-exists? (f-join lib-location (symbol-name mode)))
+                           for exists = (f-exists? (f-join librarian-insert-loc (symbol-name mode)))
                            when (and exists (not (gethash mode lib-key-cache)))
                            do
                            (puthash mode
                                     (mapcar (-partial #'lib--propertize (symbol-name mode))
                                             (-reject (-partial #'f-ext? "DS_Store")
-                                                     (f-files (f-join lib-location (symbol-name mode)))))
+                                                     (f-files (f-join librarian-insert-loc (symbol-name mode)))))
                                     lib-key-cache)
                            when exists
                            append (gethash mode lib-key-cache)
