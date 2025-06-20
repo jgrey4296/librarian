@@ -1,7 +1,7 @@
 ;;; librarian--biblio-edit.el -*- lexical-binding: t; no-byte-compile: t; -*-
 ;;-- Header
 ;; File Commentary:
-;;
+;; Functions for editing bibtex files
 ;;
 ;;
 ;;-- end Header
@@ -67,6 +67,11 @@
 
 (defvar bibtex-completion-pdf-open-function 'browse-url)
 
+(defvar lib-downloads-bookmark "downloads")
+
+(defvar lib-dropbox-bookmark "dropbox")
+
+(defvar lib-todos-bookmark "todo.pdfs")
 ;;-- end vars
 
 ;;-- commands
@@ -506,12 +511,8 @@ With arg, searchs the dplp instead.
          (bot-wind (with-selected-window top-wind
                      (split-window-below)))
          )
-    (with-selected-window top-wind
-      (bookmark-jump "downloads")
-      )
-    (with-selected-window bot-wind
-      (bookmark-jump "todo_pdfs")
-      )
+    (with-selected-window top-wind (bookmark-jump lib-downloads-bookmark))
+    (with-selected-window bot-wind (bookmark-jump lib-todos-bookmark))
     )
   )
 
@@ -521,12 +522,8 @@ With arg, searchs the dplp instead.
          (bot-wind (with-selected-window top-wind
                      (split-window-below)))
          )
-    (with-selected-window top-wind
-      (bookmark-jump "dropbox")
-      )
-    (with-selected-window bot-wind
-      (bookmark-jump "todo_pdfs")
-      )
+    (with-selected-window top-wind (bookmark-jump lib-dropbox-bookmark))
+    (with-selected-window bot-wind (bookmark-jump lib-todos-bookmark))
     )
   )
 
