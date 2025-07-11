@@ -52,7 +52,7 @@
 
 (evil-make-intercept-map lib-mode-map 'normal)
 
-;;;###autoload (autoload 'librarian-minor-mode "librarian")
+;;;###autoload (autoload 'librarian-mode "librarian")
 (define-minor-mode lib-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :lighter "Librarian"
