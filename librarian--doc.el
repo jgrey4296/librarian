@@ -55,11 +55,12 @@ Valid keys are lid-valid-keywords
   (cl-assert (listp fns))
   (cl-assert (lid-valid-type-p prop))
   (cl-assert (plistp lid-handlers-plist))
-  (let* ((orig (plist-get lid-handlers-plist prop))
+  (let* ((local (buffer-local-value 'lid-handlers-plist (current-buffer)))
+         (orig (plist-get local prop))
          (merged (cl-remove-duplicates (append fns orig) :from-end t))
          )
       (setq-local lid-handlers-plist
-                  (plist-put lid-handlers-plist
+                  (plist-put local
                              prop
                              merged
                              ))
