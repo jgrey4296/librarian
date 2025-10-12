@@ -354,7 +354,7 @@ and insert it into the current entry "
       (user-error "No Applicable File Found")
       )
     (when (f-exists? (f-join lib-todo-files-loc (f-filename newest)))
-      (use-error "File already exists in todo directory: %s" newest)
+      (user-error "File already exists in todo directory: %s" newest)
       )
     (message "Newest: %s" newest)
     (f-move newest (f-join lib-todo-files-loc (f-filename newest)))
