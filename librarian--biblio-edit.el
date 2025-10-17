@@ -406,7 +406,7 @@ and insert it into the current entry "
     (bibtex-end-of-entry)
     (insert "\n\n")
     (insert cite-type)
-    (insert (format "{%s%s,\n" lib-default-stubkey-base (random 5000)))
+    (insert (format "{%s%s,\n" librarian--biblio-clean-default-stubkey-base (random 5000)))
     (insert "year = " year ",\n")
     (insert "crossref = {" key "},\n")
     (insert "title = {},\n")
