@@ -1,12 +1,4 @@
 ;;; lookup-search.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- header
-;;
-;;; Commentary:
-;;
-;;
-;;
-;;; Code:
-;;-- end header
 
 (eval-when-compile
   (require 'url-util)
@@ -127,7 +119,7 @@ engine."
   )
 
 (provide 'librarian--online)
-;;; lookup-search.el ends here
+;;; librarian--online.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lio-" . "librarian--online-")

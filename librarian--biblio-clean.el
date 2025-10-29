@@ -1,11 +1,4 @@
 ;;; librarian--biblio-clean.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- Header
-;; File Commentary:
-;;
-;;
-;;
-;;-- end Header
-
 (eval-when-compile
   (require 'bibtex)
   )
@@ -331,22 +324,6 @@ If mark is active reformat entries in region, if not in whole buffer."
 
 (provide 'librarian--biblio-clean)
 
-;;-- Footer
-;; Copyright (C) 2024 john
-;;
-;; Author:     john <https://github.com/jgrey4296>
-;; Maintainer: john <john@john-UM700>
-;; Created:    December 17, 2024
-;; Modified:   December 17, 2024
-;; Version: 0.0.1
-;; Keywords:
-;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3"))
-;; Package written on: ((emacs 29.3))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;-- end Footer
 ;;; librarian--biblio-clean.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (

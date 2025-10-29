@@ -6,14 +6,15 @@
 ;;
 ;;-- end Header
 (require 'buttercup)
+(require 'librarian--biblio-edit)
 
 (describe "title case"
   (it "should behave by some rules"
-    (expect (lib-title-case "this is a test") :to-be "This Is A Test" )
-    (expect (lib-title-case "This Is A Test") :to-be "This Is A Test" )
-    (expect (lib-title-case "Why Aren’t We Talking About Trump’s Fascism?") :to-be "Why Aren’t We Talking About Trump’s Fascism?" )
-    (expect (lib-title-case "Why Aren't We Talking About Trump’s Fascism?") :to-be "Why Aren't We Talking About Trump’s Fascism?" )
-    (expect (lib-title-case "Why Aren't 'We blah' Talking About Trump’s Fascism?") :to-be "Why Aren't 'we Blah' Talking About Trump’s Fascism?" )
+    (expect (lib-title-case "this is a test") :to-equal "This Is A Test" )
+    (expect (lib-title-case "This Is A Test") :to-equal "This Is A Test" )
+    (expect (lib-title-case "Why Aren’t We Talking About Trump’s Fascism?") :to-equal "Why Aren’t We Talking About Trump’s Fascism?" )
+    (expect (lib-title-case "Why Aren't We Talking About Trump’s Fascism?") :to-equal "Why Aren't We Talking About Trump’s Fascism?" )
+    (expect (lib-title-case "Why Aren't 'We blah' Talking About Trump’s Fascism?") :to-equal "Why Aren't 'we Blah' Talking About Trump’s Fascism?" )
     )
   )
 
@@ -37,7 +38,7 @@
 ;;-- end Footer
 ;; Local Variables:
 ;; read-symbol-shorthands: (
-;; ("lib-" . "librarian--biblio-util-")
+;; ("lib-" . "librarian--biblio-edit-")
 ;; )
 ;; End:
 ;;; test-biblio-bc.el ends here

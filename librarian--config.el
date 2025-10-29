@@ -86,6 +86,7 @@
   )
 
 (provide 'librarian--config)
+;;; librarian--config.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lic-" . "librarian--config-")

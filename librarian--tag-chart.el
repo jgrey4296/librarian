@@ -186,6 +186,7 @@ and sorts groups alphabetically"
   )
 
 (provide 'librarian--tag-chart)
+;;; librarian--tag-chart.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("litc-" . "librarian--tag-chart-")

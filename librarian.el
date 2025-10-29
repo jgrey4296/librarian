@@ -1,17 +1,15 @@
-;;; librarian.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- header
-;;
+;;; librarian.el --- Various lookup utilities -*- lexical-binding: t; no-byte-compile: t; -*-
+
 ;; Copyright (C) 2023 John Grey
 ;;
 ;; Author: John Grey <https://github.com/jgrey4296>
 ;; Maintainer: John Grey <johngrey@Johns-Mac-mini.local>
 ;; Created: September 03, 2023
-;; Modified: September 03, 2023
-;; Version: 0.0.1
+;; Version: 1.0.0
 ;; Keywords:
-;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3") (dash) (s) (cl-lib) (f) (evil) (better-jumper) (counsel) (counsel-dash) (free-keys) (xref) (browse-url) (helpful) (thingatpt) (eldoc) (ivy) (counsel) (synosaurus) (wordnut) (helm-wordnet) (flyspell) (ispell) (spell-fu) (flyspell-correct) (flyspell-correct-ivy) (flyspell-lazy) (bug-reference) (s) (bibtex) (bibtex-completion) (org-ref) (macro-tools) (eww) (parent-mode))
-;; Package written on: ((emacs 28.2))
+;; Homepage: https://github.com/jgrey4296/librarian
+;; Package-Requires: ((emacs "30.2") (better-jumper) (bibtex) (bibtex-completion) (bookmark) (cl-lib) (company) (counsel) (counsel-dash) (dash) (dash-docs) (define-word) (eldoc) (evil) (eww) (f) (flyspell) (flyspell-correct) (flyspell-correct-ivy) (flyspell-lazy) (helm-wordnet) (ispell) (ivy) (macro-tools "1.0.0") (org-ref) (parent-mode) (powerthesaurus) (s) (spell-fu) (synosaurus) (thingatpt) (wordnut) (xref) (projectile))
+;; Package written on: ((emacs 30.2))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;
@@ -21,7 +19,7 @@
 ;;
 ;;
 ;;; Code:
-;;-- end header
+
 
 (require 'lib--util)
 (require 'lib--backend)

@@ -32,6 +32,7 @@
   )
 
 (provide 'librarian--man)
+;;; librarian--man.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lim-" . "librarian--man-")

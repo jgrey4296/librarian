@@ -72,6 +72,7 @@ after `browse-url-handlers` have processed the url
   )
 
 (provide 'librarian--browse)
+;;; librarian--browse.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lib-" . "librarian--browse-")

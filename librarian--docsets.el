@@ -60,6 +60,7 @@ install it if necessary)."
     (librarian-docset-consult query selected)))
 
 (provide 'librarian--docsets)
+;;; librarian--docsets.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lid-" . "librarian--docsets-")

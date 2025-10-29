@@ -1,10 +1,4 @@
 ;;; librarian-bibliography.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- header
-;;
-;;  for getting entries from bibtex
-;;
-;;; Code:
-;;-- end header
 
 (eval-when-compile
   (require 's)

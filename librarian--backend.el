@@ -1,11 +1,4 @@
 ;;; librarian-handlers.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- header
-;;
-;;
-;;
-;;
-;;; Code:
-;;-- end header
 
 (eval-when-compile
   (require 'thingatpt)
@@ -14,6 +7,7 @@
   (require 'xref)
   (require 'evil)
   (require 'counsel)
+  (require 'projectile)
   )
 
 (unless (boundp 'counsel-search-engine)    (defvar counsel-search-engine nil))

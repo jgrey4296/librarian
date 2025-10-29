@@ -150,6 +150,7 @@ fn is (lambda (str) (insert str))
 )
 
 (provide 'librarian--insert)
+;;; librarian--insert.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("lib-" . "librarian--insert-")

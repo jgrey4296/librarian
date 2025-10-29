@@ -1,20 +1,15 @@
 ;;; librarian--envs.el -*- lexical-binding: t; no-byte-compile: t; -*-
-;;-- header
-;;
-;;
-;;
-;;
-;;; Code:
-;;-- end header
 
-;;-- vars
 (eval-when-compile
   (require 'cl-lib)
   (require 'dash)
   (require 'f)
   (require 's)
   (require 'macro-tools--util)
+  (require 'projectile)
   )
+
+;;-- vars
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
 
@@ -460,22 +455,6 @@ eg: Setting head-line-format
 
 (provide 'librarian--envs)
 
-;;-- Footer
-;; Copyright (C) 2024 john
-;;
-;; Author:     john <https://github.com/jgrey4296>
-;; Maintainer: john <john@john-UM700>
-;; Created:    December 14, 2024
-;; Modified:   December 14, 2024
-;; Version: 0.0.1
-;; Keywords:
-;; Homepage: https://github.com/jgrey4296
-;; Package-Requires: ((emacs "24.3"))
-;; Package written on: ((emacs 29.3))
-;;
-;; This file is not part of GNU Emacs.
-;;
-;;-- end Footer
 ;;; librarian-envs.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (

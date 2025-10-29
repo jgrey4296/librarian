@@ -145,6 +145,7 @@ originally from doom
   (funcall fn fetcher alist))
 
 (provide 'librarian--util)
+;;; librarian--util.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("liu-" . "librarian--util-")

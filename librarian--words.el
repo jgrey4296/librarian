@@ -12,7 +12,6 @@
   (require 'helm-wordnet)
 
   ;; optional
-  (require 'osx-dictionary nil t)
   (require 'define-word nil t)
   (require 'powerthesaurus nil t)
   (require 'company-ispell nil t)
@@ -21,8 +20,7 @@
 (defvar liw-dictionary-prefer-offline nil)
 
 (defvar liw--lookup-define-fn
-  (cond ((and (eq system-type 'darwin) (featurep 'osx-dictionary)) #'osx-dictionary--view-result)
-        ((and (featurep 'wordnut) liw-dictionary-prefer-offline) #'wordnut-search)
+  (cond ((and (featurep 'wordnut) liw-dictionary-prefer-offline) #'wordnut-search)
         ((featurep 'define-word) #'define-word)
         ((featurep 'wordnut) #'wordnut-search)
         (t (lambda (x) (user-error "No dictionary backend is available"))):w
@@ -60,6 +58,7 @@
   )
 
 (provide 'librarian--words)
+;;; librarian--words.el ends here
 ;; Local Variables:
 ;; read-symbol-shorthands: (
 ;; ("liw-" . "librarian--words-")
