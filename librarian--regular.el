@@ -16,6 +16,18 @@
 
 (defvar-local lib-targets nil)
 
+(defun libarian--regular-offset (str) ;; -> str
+  (let* ((max-line 50)
+         (len (length str))
+         (amnt (- max-line len))
+         )
+    (if (< 0 amnt)
+        (make-string amnt ? )
+      (make-string 10 ? )
+      )
+    )
+  )
+
 ;;;###autoload
 (define-minor-mode librarian-regular-minor-mode
   " for all modes in (parent-mode-list major-mode) load any
@@ -47,12 +59,20 @@ Use librarian-regular-go to choose one of those urls and jump to it
 (defun lib--load-file (file)
   "read a list of (name . url) from the given file"
   (cl-assert (f-exists? file) t "Lib-Regular Load File Check")
-  (let (targets)
+  (let ((max-line 40)
+        targets)
     (with-temp-buffer
       (insert-file-contents file)
       (mapc #'(lambda (x)
-                (-when-let (vals (split-string x lib-splitter t " +"))
-                  (push (cons (car vals) (cadr vals)) targets)
+                (-when-let* ((vals (split-string x lib-splitter t " +"))
+                             (offset (librarian--regular-offset (car vals)))
+                             )
+                  (push (cons (format "%s%s(%s)"
+                                      (car vals)
+                                      offset
+                                      (f-filename file)
+                                      )
+                              (cadr vals)) targets)
                   ))
             (s-lines (buffer-substring-no-properties (point-min) (point-max)))
             )
