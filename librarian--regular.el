@@ -16,7 +16,7 @@
 
 (defvar-local lib-targets nil)
 
-(defun libarian--regular-offset (str) ;; -> str
+(defun librarian--regular-offset (str) ;; -> str
   (let* ((max-line 50)
          (len (length str))
          (amnt (- max-line len))
