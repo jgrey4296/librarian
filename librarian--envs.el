@@ -9,6 +9,7 @@
   (require 'projectile)
   )
 
+
 ;;-- vars
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
@@ -19,9 +20,7 @@
 
 (defvar-local lenv-modeline-list (list))
 
-(defvar lenv-marker ".lenvs"
-  "Marker files librarian will look for to determine the librarian-environment"
-  )
+(defvar lenv-envvar "LIBRARIAN_HANDLERS")
 
 (defconst lenv-process-name
   "envs-handling-proc"
@@ -80,7 +79,6 @@ where rest are the data values  read from the relevant line in a .lenv file
 (cl-defstruct (lenv-loc)
   "Description of where environment data was found"
   (root       nil :type 'path :documentation "root of the project")
-  (marker     nil :type 'path :documentation "relpath to the marker from the root")
   )
 ;;-- end structs
 
@@ -151,52 +149,16 @@ Either a librarian--envs-handler, or a plist to build one
 (defun lenv-init-loc (&optional start)
   " return an envs-loc "
   (let* ((root (or (projectile-project-root start) default-directory)))
-    (make-lenv-loc :root root
-                   :marker (when (f-exists? (f-join root lenv-marker)) lenv-marker)
-                   )
+    (make-lenv-loc :root root)
     )
   )
 
-(defun lenv-parse-marker (loc) ;; -> list
-  "Parse a marker file for handler name data
-
-return: (list marker-id | (marker-id args))
-"
-  (unless (lenv-loc-p loc)
-    (error "Not passed a lenv-loc" loc))
-  (let ((marker (lenv-expand-marker loc))
-        data
-        )
-    (if (not (and marker (f-exists? marker)))
-        (progn (message "Marker Doesn't Exist" marker) nil)
-      (with-temp-buffer
-        (insert-file-contents marker)
-        (goto-char (point-min))
-        (while (< (point) (point-max))
-          ;; go through each line
-          ;; ignore comments and blank lines
-          (cond ((looking-at "^#") nil)
-                ((looking-at "^$") nil)
-                (t (push (s-split " +" (buffer-substring (line-beginning-position)
-                                                         (line-end-position)) t)
-                         data)
-                   )
-                )
-          (forward-line)
-          )
-        )
-      (reverse data)
-      )
-    )
-  )
-
-(defun lenv-expand-marker (loc) ;; -> maybe[path]
-  (-when-let* ((root (lenv-loc-root loc))
-               (marker (lenv-loc-marker loc))
-               (joined (f-join (lenv-loc-root loc) (lenv-loc-marker loc)))
-               (exists (f-exists? joined))
-               )
-    joined
+(defun lenv-read-environment ()
+  "Read the environment variable LIBRARIAN-HANDLERS and return as a list"
+  (interactive)
+  (unless (getenv lenv-envvar) (user-error "There is no %s envvar" lenv-envvar))
+  (let* ((val (getenv lenv-envvar)))
+    (mapcar #'(lambda (x) (s-split "+" x)) (s-split ":" val t))
     )
   )
 
@@ -257,7 +219,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
   (interactive "P")
   (let* ((loc (lenv-init-loc))
          ;; Handlers: (list handler-id | (handler-id args)
-         (specs (mapcar #'ensure-list (or ids (lenv-parse-marker loc))))
+         (specs (mapcar #'ensure-list (or ids (lenv-read-environment))))
          states
          )
     (when arg (setq specs nil)
@@ -314,7 +276,7 @@ pass a prefix arg to use ivy to manually select from registered handlers
 (defun lenv-stop (arg &rest ids)
   (interactive "P")
   (let* ((loc (lenv-init-loc))
-         (specs (or ids (--if-let (lenv-parse-marker loc) (mapcar #'car it))))
+         (specs (or ids (--if-let (lenv-read-environment) (mapcar #'car it))))
          states
          )
     (when arg
