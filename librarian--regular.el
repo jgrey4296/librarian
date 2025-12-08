@@ -46,7 +46,6 @@ Use librarian-regular-go to choose one of those urls and jump to it
                  (cl-loop for mode in (append (parent-mode-list major-mode) '(fundamental-mode) local-minor-modes global-minor-modes)
                           for source-file = (f-join librarian-regular-loc (symbol-name mode))
                           for source-exists = (and librarian-regular-loc (f-exists? source-file))
-                          do (message "Attempting: %s" source-file)
                           when (and source-exists (not (gethash mode lib-cache)))
                           do ;; load the source file
                           (puthash mode (lib--load-file source-file) lib-cache)
