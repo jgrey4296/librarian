@@ -57,10 +57,15 @@
   :keymap librarian-mode-map
   )
 
+(defun librarian-mode-active-p ()
+  (and (not (minibufferp))
+       (not (apply #'derived-mode-p librarian-forbid-modes))
+       (apply #'derived-mode-p librarian-active-on-modes)
+       )
+  )
+
 (defun librarian-mode/turn-on ()
-  (when (and (not (or (minibufferp)
-                      (apply #'derived-mode-p librarian-forbid-modes)))
-             (apply #'derived-mode-p librarian-active-on-modes))
+  (when (librarian-mode-active-p)
     (librarian-mode 1)
     )
   )

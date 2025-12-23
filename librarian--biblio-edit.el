@@ -240,7 +240,7 @@ the entry of interest in the bibfile.  but does not check that."
       (cond ((string-empty-p target)
              (message "No File to open"))
             ((not (file-exists-p target))
-             (message "File does not exist"))
+             (message "File does not exist: %s" target))
             (t (call-process "open" nil nil nil target))
             )
 
