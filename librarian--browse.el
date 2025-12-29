@@ -20,6 +20,7 @@
 
 (defun lib-load-variants ()
   " Get a list of possible browsers to use from persistent file"
+  (interactive)
   (with-temp-buffer
     (insert-file-contents (expand-file-name lib-variants-file))
     (mapc #'(lambda (x) (add-to-list 'lib-variants x))
