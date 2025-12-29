@@ -45,6 +45,8 @@
 
 ;;;###autoload (defalias 'librarian-browse-open #'librarian--browse-open-url)
 
+;;;###autoload (defalias 'librarian-browse-select #'librarian--browse-select)
+
 ;;;###autoload (autoload 'librarian--browse-open-url "librarian--browse")
 (defun lib-open-url (url &rest args)
   " Find and call the appropriate browser program,
