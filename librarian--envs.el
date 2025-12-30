@@ -9,7 +9,6 @@
   (require 'projectile)
   )
 
-
 ;;-- vars
 
 (defvar lenv-enter-hook nil "A general hook for when entering an environment")
@@ -21,6 +20,10 @@
 (defvar-local lenv-modeline-list (list))
 
 (defvar lenv-envvar "LIBRARIAN_HANDLERS")
+
+(defvar lenv-envvar-sep ":")
+
+(defvar lenv-envvar-opts "+")
 
 (defconst lenv-process-name
   "envs-handling-proc"
@@ -157,8 +160,13 @@ Either a librarian--envs-handler, or a plist to build one
   "Read the environment variable LIBRARIAN-HANDLERS and return as a list"
   (interactive)
   (unless (getenv lenv-envvar) (user-error "There is no %s envvar" lenv-envvar))
-  (let* ((val (getenv lenv-envvar)))
-    (mapcar #'(lambda (x) (s-split "+" x)) (s-split ":" val t))
+  (let* ((val (getenv lenv-envvar))
+         (split-handlers (s-split lenv-envvar-sep val t))
+         (split-opts (mapcar #'(lambda (x) (s-split lenv-envvar-opts x))
+                             split-handlers
+                             ))
+         )
+    split-opts
     )
   )
 
@@ -398,7 +406,7 @@ eg: Setting head-line-format
              )
     )
   )
-  
+
 (defun lenv-head-activator ()
   "Adds to the buffer local header-line-format"
   (let* ((states (hash-table-values lenv-active))
