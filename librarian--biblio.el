@@ -266,15 +266,17 @@ returns the new location
   (when destructive
       (message "Destructive Refile"))
   (save-excursion
+    (bibtex-beginning-of-entry)
     (let* ((entry  (bibtex-parse-entry))
            (author (s-capitalize (bibtex-autokey-get-names)))
            (year   (bibtex-text-in-field "year"))
            (century (replace-regexp-in-string "\\(..\\).." "\\100" year))
-           (decade (replace-regexp-in-string "\\(...\\).." "\\10" year))
+           (decade (replace-regexp-in-string "\\(...\\)." "\\10" year))
            (files  (-filter #'identity (mapcar #'lib-get-files-fn entry)))
            (pdflib lib-pdf-loc)
            (finalpath (f-join pdflib century decade year author))
            newlocs)
+
       (make-directory finalpath 'parents)
 
       (setq newlocs (cl-loop for file in files
