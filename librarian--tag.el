@@ -6,15 +6,15 @@
   (require 'f)
   )
 
-(defvar lit-global-tags      (make-hash-table :test 'equal))
+(defvar librarian--tag-global-tags      (make-hash-table :test 'equal))
 
-(defvar-local lit-local-tags (make-hash-table :test 'equal))
+(defvar-local librarian--tag-local-tags (make-hash-table :test 'equal))
 
-(defvar lit-marker           (make-marker) "a marker for where the region to tag ends")
+(defvar librarian--tag-marker           (make-marker) "a marker for where the region to tag ends")
 
-(defvar lit--current-entry-tags nil)
+(defvar librarian--tag--current-entry-tags nil)
 
-(defvar lit--current-buffer-tags nil)
+(defvar librarian--tag--current-buffer-tags nil)
 
 ;;-- api
 (cl-defgeneric librarian-set-tags (mode add sub keep)
@@ -95,12 +95,12 @@
   )
 ;;-- end defaults
 
-(defun lit-get-delta (new)
+(defun librarian--tag-get-delta (new)
   "Given a list of normalized change tags,
 returns a triple of (add sub keep), against the current entry tags "
-  (let ((add (seq-difference new lit--current-entry-tags))
-        (sub (seq-intersection new lit--current-entry-tags))
-        (keep (seq-difference lit--current-entry-tags new))
+  (let ((add (seq-difference new librarian--tag--current-entry-tags))
+        (sub (seq-intersection new librarian--tag--current-entry-tags))
+        (keep (seq-difference librarian--tag--current-entry-tags new))
         )
     (list add sub keep)
     )
@@ -108,8 +108,3 @@ returns a triple of (add sub keep), against the current entry tags "
 
 (provide 'librarian--tag)
 ;;; librarian-tag-mode.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lit-" . "librarian--tag-")
-;; )
-;; End:

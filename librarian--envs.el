@@ -11,32 +11,32 @@
 
 ;;-- vars
 
-(defvar lenv-enter-hook nil "A general hook for when entering an environment")
+(defvar librarian--envs-enter-hook nil "A general hook for when entering an environment")
 
-(defvar lenv-exit-hook nil "A general hook for exiting an environment")
+(defvar librarian--envs-exit-hook nil "A general hook for exiting an environment")
 
-(defvar lenv-registered (make-hash-table) "Mapping of env names to their structs")
+(defvar librarian--envs-registered (make-hash-table) "Mapping of env names to their structs")
 
-(defvar-local lenv-modeline-list (list))
+(defvar-local librarian--envs-modeline-list (list))
 
-(defvar lenv-envvar "LIBRARIAN_HANDLERS")
+(defvar librarian--envs-envvar "LIBRARIAN_HANDLERS")
 
-(defvar lenv-envvar-sep ":")
+(defvar librarian--envs-envvar-sep ":")
 
-(defvar lenv-envvar-opts "+")
+(defvar librarian--envs-envvar-opts "+")
 
-(defconst lenv-process-name
+(defconst librarian--envs-process-name
   "envs-handling-proc"
   "The name of the process librarian uses to run external actions")
 
-(defconst lenv-buffer-name
+(defconst librarian--envs-buffer-name
   "*envs-handling*"
   "The buffer librarian puts report output into"
   )
 
-(defconst lenv-modeline-format '("(Env: " (:eval lenv-modeline-list) " )"))
+(defconst librarian--envs-modeline-format '("(Env: " (:eval librarian--envs-modeline-list) " )"))
 
-(defvar lenv-active (make-hash-table) "maps id -> activated handlers")
+(defvar librarian--envs-active (make-hash-table) "maps id -> activated handlers")
 
 ;;-- end vars
 
@@ -44,7 +44,7 @@
 ;;;###autoload (defalias 'librarian-envs-handler-p #'librarian--envs-handler-p)
 ;;;###autoload (autoload 'librarian-envs-handler-p "librarian--envs")
 
-(cl-defstruct (lenv-handler)
+(cl-defstruct (librarian--envs-handler)
   " An environment handler.
 describes the language it handles,
 its callbacks,
@@ -68,33 +68,33 @@ where rest are the data values  read from the relevant line in a .lenv file
   (desc     nil     :type 'str              :read-only t :documentation "for reporting")
   )
 
-(cl-defstruct (lenv-state)
+(cl-defstruct (librarian--envs-state)
   "The current envs state for a handler"
   (id       nil   :type 'symbol :documentation "the same as the handler")
   (status   nil   :type 'symbol :documentation "nil|setup|active")
-  (loc      nil   :type 'lenv-loc)
+  (loc      nil   :type 'librarian--envs-loc)
   (locked   nil   :type 'bool)
   (data     nil   :type 'list :documentation "a list for arbitrary data handlers can put")
   (modeline nil   :type 'string)
   (headline nil   :type 'string)
   )
 
-(cl-defstruct (lenv-loc)
+(cl-defstruct (librarian--envs-loc)
   "Description of where environment data was found"
   (root       nil :type 'path :documentation "root of the project")
   )
 ;;-- end structs
 
-(defun lenv-report-message (direction loc)
-  "A Single message to report on the status of the environment at the end of lenv-start/stop"
-  (when (not (hash-table-empty-p lenv-active))
+(defun librarian--envs-report-message (direction loc)
+  "A Single message to report on the status of the environment at the end of librarian--envs-start/stop"
+  (when (not (hash-table-empty-p librarian--envs-active))
     (message "Env %s : %s\n%s"
              direction
-             (lenv-loc-root loc)
-             (string-join (cl-loop for state being the hash-values in lenv-active
-                                   for id     = (lenv-state-id state)
-                                   for locked = (lenv-state-locked state)
-                                   for status = (lenv-state-status state)
+             (librarian--envs-loc-root loc)
+             (string-join (cl-loop for state being the hash-values in librarian--envs-active
+                                   for id     = (librarian--envs-state-id state)
+                                   for locked = (librarian--envs-state-locked state)
+                                   for status = (librarian--envs-state-status state)
                                    collect
                                    (format "- %s%s : %s"
                                            (if locked "*" "")
@@ -107,24 +107,24 @@ where rest are the data values  read from the relevant line in a .lenv file
 ;;;###autoload (defalias 'librarian-envs-register! #'librarian--envs-register)
 
 ;;;###autoload (autoload 'librarian-envs-register! "librarian--envs")
-(defun lenv-register (id &rest args)
+(defun librarian--envs-register (id &rest args)
   " Register a new handler.
 Either a librarian--envs-handler, or a plist to build one
 "
-  (let* ((new-handler (if (lenv-handler-p id)
+  (let* ((new-handler (if (librarian--envs-handler-p id)
                           id
-                        (lenv-macro-aware-build-handler id args)))
-         (id (lenv-handler-id new-handler))
+                        (librarian--envs-macro-aware-build-handler id args)))
+         (id (librarian--envs-handler-id new-handler))
          )
-    (if (gethash id lenv-registered)
+    (if (gethash id librarian--envs-registered)
         (message "A Handler has already been registered with the name: %s" id)
-      (puthash id new-handler lenv-registered)
+      (puthash id new-handler librarian--envs-registered)
       (message "Registered Env Handler: %s" id)
       )
     )
 )
 
-(defun lenv-macro-aware-build-handler (id args)
+(defun librarian--envs-macro-aware-build-handler (id args)
   "Build a handler, ensuring the callbacks are actually functions"
   (cl-assert (plistp args) t "Should be a plist")
   (setq args (plist-put args :setup    (upfun! (plist-get args :setup))))
@@ -133,36 +133,36 @@ Either a librarian--envs-handler, or a plist to build one
   (setq args (plist-put args :teardown (upfun! (plist-get args :teardown))))
   (setq args (plist-put args :modeline (upfun! (plist-get args :modeline))))
   (setq args (plist-put args :headline (upfun! (plist-get args :headline))))
-  (apply #'make-lenv-handler :id id args)
+  (apply #'make-librarian--envs-handler :id id args)
   )
 
 ;;;###autoload (defalias 'librarian-envs-clear! #'librarian--envs-clear-registry)
 
 ;;;###autoload (autoload 'librarian-envs-clear! "librarian--envs")
-(defun lenv-clear-registry (&optional force)
+(defun librarian--envs-clear-registry (&optional force)
   (interactive)
-  (if (not (or force (hash-table-empty-p lenv-active)))
+  (if (not (or force (hash-table-empty-p librarian--envs-active)))
       (message "There are active environments, deactivate them before clearing")
     (message "Clearing Registered Environment Handlers")
-    (clrhash lenv-registered)
-    (clrhash lenv-active)
+    (clrhash librarian--envs-registered)
+    (clrhash librarian--envs-active)
     )
   )
 
-(defun lenv-init-loc (&optional start)
+(defun librarian--envs-init-loc (&optional start)
   " return an envs-loc "
   (let* ((root (or (projectile-project-root start) default-directory)))
-    (make-lenv-loc :root root)
+    (make-librarian--envs-loc :root root)
     )
   )
 
-(defun lenv-read-environment ()
+(defun librarian--envs-read-environment ()
   "Read the environment variable LIBRARIAN-HANDLERS and return as a list"
   (interactive)
-  (unless (getenv lenv-envvar) (user-error "There is no %s envvar" lenv-envvar))
-  (let* ((val (getenv lenv-envvar))
-         (split-handlers (s-split lenv-envvar-sep val t))
-         (split-opts (mapcar #'(lambda (x) (s-split lenv-envvar-opts x))
+  (unless (getenv librarian--envs-envvar) (user-error "There is no %s envvar" librarian--envs-envvar))
+  (let* ((val (getenv librarian--envs-envvar))
+         (split-handlers (s-split librarian--envs-envvar-sep val t))
+         (split-opts (mapcar #'(lambda (x) (s-split librarian--envs-envvar-opts x))
                              split-handlers
                              ))
          )
@@ -170,43 +170,43 @@ Either a librarian--envs-handler, or a plist to build one
     )
   )
 
-(defun lenv-get-handler (id)
+(defun librarian--envs-get-handler (id)
   "Get a handler by its id.
 handles both strings and symbols
 "
   (pcase id
-    ((pred lenv-handler-p) id)
-    ((pred symbolp) (gethash id lenv-registered))
-    ((pred stringp) (gethash (intern id) lenv-registered))
+    ((pred librarian--envs-handler-p) id)
+    ((pred symbolp) (gethash id librarian--envs-registered))
+    ((pred stringp) (gethash (intern id) librarian--envs-registered))
     (x (user-error "Tried to get a handler with a bad type: %s" id))
     )
  )
 
-(defun lenv-get-state (id)
+(defun librarian--envs-get-state (id)
   (pcase id
-    ((pred lenv-state-p) id)
-    ((pred symbolp) (gethash id lenv-active))
-    ((pred stringp) (gethash (intern id) lenv-active))
+    ((pred librarian--envs-state-p) id)
+    ((pred symbolp) (gethash id librarian--envs-active))
+    ((pred stringp) (gethash (intern id) librarian--envs-active))
     (x (user-error "Tried to get a state with a bad type: %s" id))
     )
   )
 
-(defun lenv-activate-handler (id loc &optional data)
-  " wrap a handler and loc into a state and add it to lenv-active.
+(defun librarian--envs-activate-handler (id loc &optional data)
+  " wrap a handler and loc into a state and add it to librarian--envs-active.
 then return the state
 "
-  (unless (lenv-get-handler id) (error "Tried to activate a non-registered handler" id))
-  (unless (lenv-loc-p loc) (error "tried to activate a handler with an invalid loc" loc))
-  (if (lenv-get-state id)
-      (lenv-get-state id)
-    (let* ((handler (lenv-get-handler id))
-          (state (make-lenv-state
-                  :id (lenv-handler-id handler)
+  (unless (librarian--envs-get-handler id) (error "Tried to activate a non-registered handler" id))
+  (unless (librarian--envs-loc-p loc) (error "tried to activate a handler with an invalid loc" loc))
+  (if (librarian--envs-get-state id)
+      (librarian--envs-get-state id)
+    (let* ((handler (librarian--envs-get-handler id))
+          (state (make-librarian--envs-state
+                  :id (librarian--envs-handler-id handler)
                   :status nil
                   :loc loc
                   :locked nil
                   :data data)))
-      (puthash (lenv-state-id state) state lenv-active)
+      (puthash (librarian--envs-state-id state) state librarian--envs-active)
       state
       )
     )
@@ -215,7 +215,7 @@ then return the state
 ;;;###autoload (defalias 'librarian-envs-start! #'librarian--envs-start)
 
 ;;;###autoload (autoload 'librarian--envs-start "librarian--envs")
-(defun lenv-start (arg &rest ids)
+(defun librarian--envs-start (arg &rest ids)
   " Main access point for setting up environment.
 Acts as a Dispatch to activate appropriate environment
 and call the currently selected lsp/conda client entrypoint
@@ -225,14 +225,14 @@ pass a prefix arg to use ivy to manually select from registered handlers
 "
 
   (interactive "P")
-  (let* ((loc (lenv-init-loc))
+  (let* ((loc (librarian--envs-init-loc))
          ;; Handlers: (list handler-id | (handler-id args)
-         (specs (mapcar #'ensure-list (or ids (lenv-read-environment))))
+         (specs (mapcar #'ensure-list (or ids (librarian--envs-read-environment))))
          states
          )
     (when arg (setq specs nil)
           (ivy-read "Available Handlers: "
-                    (hash-table-keys lenv-registered)
+                    (hash-table-keys librarian--envs-registered)
                     :require-match t
                     :action #'(lambda (x) (add-to-list 'specs (list x)))
                     ))
@@ -244,36 +244,36 @@ pass a prefix arg to use ivy to manually select from registered handlers
     ;; wrap handlers in a state with loc
     (setq states (cl-loop for vals in specs
                           collect
-                          (funcall #'lenv-activate-handler (car vals) loc (cdr vals))))
+                          (funcall #'librarian--envs-activate-handler (car vals) loc (cdr vals))))
     ;; Use the minor mode for modeline and headline modification:
-    (add-to-list 'global-mode-string lenv-modeline-format)
+    (add-to-list 'global-mode-string librarian--envs-modeline-format)
     (add-hook 'prog-mode-hook #'librarian-env-minor-mode)
 
     (prog1
         ;; now activate
         (cl-loop for state in states
-                 for valid              = (and state (lenv-state-p state) (not (lenv-state-locked state)))
-                 when valid for status  = (lenv-state-status state)
-                 when valid for handler = (lenv-get-handler (lenv-state-id state))
+                 for valid              = (and state (librarian--envs-state-p state) (not (librarian--envs-state-locked state)))
+                 when valid for status  = (librarian--envs-state-status state)
+                 when valid for handler = (librarian--envs-get-handler (librarian--envs-state-id state))
                  when (and valid handler (eq status 'nil)) do
                  ;; run setup
-                 (--if-let (lenv-handler-setup handler) (apply it state (lenv-state-data state)))
-                 (setf (lenv-state-status state) 'setup)
+                 (--if-let (librarian--envs-handler-setup handler) (apply it state (librarian--envs-state-data state)))
+                 (setf (librarian--envs-state-status state) 'setup)
                  when (and valid handler (eq status 'setup)) do
                  ;; run start, setting modeline
-                 (--if-let (lenv-handler-start handler)    (apply it state (lenv-state-data state)))
-                 (--if-let (lenv-handler-modeline handler) (setf (lenv-state-modeline state)
-                                                                 (apply it state (lenv-state-data state))))
-                 (--if-let (lenv-handler-headline handler) (setf (lenv-state-headline state)
-                                                                 (apply it state (lenv-state-data state))))
-                 (setf (lenv-state-status state) 'active)
+                 (--if-let (librarian--envs-handler-start handler)    (apply it state (librarian--envs-state-data state)))
+                 (--if-let (librarian--envs-handler-modeline handler) (setf (librarian--envs-state-modeline state)
+                                                                 (apply it state (librarian--envs-state-data state))))
+                 (--if-let (librarian--envs-handler-headline handler) (setf (librarian--envs-state-headline state)
+                                                                 (apply it state (librarian--envs-state-data state))))
+                 (setf (librarian--envs-state-status state) 'active)
                  ;; collect them to return
                  when t collect state
                  )
       ;; run enter hooks
-      (run-hooks 'lenv-enter-hook)
+      (run-hooks 'librarian--envs-enter-hook)
       ;; Report
-      (lenv-report-message "Activation" loc)
+      (librarian--envs-report-message "Activation" loc)
       )
     )
   )
@@ -281,16 +281,16 @@ pass a prefix arg to use ivy to manually select from registered handlers
 ;;;###autoload (defalias 'librarian-envs-stop! #'librarian--envs-stop)
 
 ;;;###autoload (autoload 'librarian--envs-stop "librarian--envs")
-(defun lenv-stop (arg &rest ids)
+(defun librarian--envs-stop (arg &rest ids)
   (interactive "P")
-  (let* ((loc (lenv-init-loc))
-         (specs (or ids (--if-let (lenv-read-environment) (mapcar #'car it))))
+  (let* ((loc (librarian--envs-init-loc))
+         (specs (or ids (--if-let (librarian--envs-read-environment) (mapcar #'car it))))
          states
          )
     (when arg
       (setq specs nil)
       (ivy-read "Available Handlers: "
-                (hash-table-keys lenv-active)
+                (hash-table-keys librarian--envs-active)
                 :require-match t
                 :action #'(lambda (x) (add-to-list 'specs x))
                 )
@@ -303,35 +303,35 @@ pass a prefix arg to use ivy to manually select from registered handlers
 
     (setq states (cl-loop for id in specs
                           collect
-                          (lenv-get-state id)
+                          (librarian--envs-get-state id)
                           ))
     (prog1
         (cl-loop for state in states
-                 for valid = (and state (lenv-state-p state) (not (lenv-state-locked state)))
-                 when valid for status = (lenv-state-status state)
-                 when valid for handler = (lenv-get-handler (lenv-state-id state))
+                 for valid = (and state (librarian--envs-state-p state) (not (librarian--envs-state-locked state)))
+                 when valid for status = (librarian--envs-state-status state)
+                 when valid for handler = (librarian--envs-get-handler (librarian--envs-state-id state))
                  ;; Deactivate, removing from modeline
                  when (and valid handler (eq status 'active)) do
-                 (--if-let (lenv-handler-stop handler)     (apply it state (lenv-state-data state)))
-                 (setf (lenv-state-status state) 'setup
-                       (lenv-state-modeline state) nil
-                       (lenv-state-headline state) nil
+                 (--if-let (librarian--envs-handler-stop handler)     (apply it state (librarian--envs-state-data state)))
+                 (setf (librarian--envs-state-status state) 'setup
+                       (librarian--envs-state-modeline state) nil
+                       (librarian--envs-state-headline state) nil
                        )
                  ;; or Teardown
                  when (and valid handler (eq status 'setup)) do
-                 (--if-let (lenv-handler-teardown handler) (apply it state (lenv-state-data state)))
-                 (setf (lenv-state-status state) nil)
-                 (remhash (lenv-state-id state) lenv-active)
+                 (--if-let (librarian--envs-handler-teardown handler) (apply it state (librarian--envs-state-data state)))
+                 (setf (librarian--envs-state-status state) nil)
+                 (remhash (librarian--envs-state-id state) librarian--envs-active)
                  when t collect state
                  )
       ;; If nothing active, clear the mode line
-      (unless (hash-table-values lenv-active)
-        (setq global-mode-string (remove lenv-modeline-format global-mode-string))
+      (unless (hash-table-values librarian--envs-active)
+        (setq global-mode-string (remove librarian--envs-modeline-format global-mode-string))
         )
       ;; Run Exit hooks
-      (run-hooks 'lenv-exit-hook)
+      (run-hooks 'librarian--envs-exit-hook)
       ;; Report
-      (lenv-report-message "Activation" loc)
+      (librarian--envs-report-message "Activation" loc)
       )
     )
   )
@@ -339,19 +339,19 @@ pass a prefix arg to use ivy to manually select from registered handlers
 ;;;###autoload (defalias 'librarian-envs-toggle-lock! #'librarian--envs-toggle-lock)
 
 ;;;###autoload (autoload 'librarian--envs-toggle-lock "librarian--envs")
-(defun lenv-toggle-lock (&rest rest)
+(defun librarian--envs-toggle-lock (&rest rest)
   "Toggle whether the environment can be changed or not"
   (interactive)
   (let ((ids rest))
     (unless ids (ivy-read "Available Handlers: "
-                          (mapcar #'lenv-state-id lenv-active)
+                          (mapcar #'librarian--envs-state-id librarian--envs-active)
                           :require-match t
                           :action #'(lambda (x) (add-to-list 'handlers x))
                           ))
     (cl-loop for name in ids
              do
-             (setf (lenv-state-locked (lenv-get-state name))
-                   (not (lenv-state-locked (lenv-get-state name)))
+             (setf (librarian--envs-state-locked (librarian--envs-get-state name))
+                   (not (librarian--envs-state-locked (librarian--envs-get-state name)))
                    )
              )
     )
@@ -360,21 +360,21 @@ pass a prefix arg to use ivy to manually select from registered handlers
 ;;;###autoload (defalias 'librarian-envs-report! #'librarian--envs-report)
 
 ;;;###autoload (autoload 'librarian--envs-report "librarian--envs")
-(defun lenv-report ()
+(defun librarian--envs-report ()
   "Display a report of all registered environments, and which are activated "
   (interactive)
   (with-temp-buffer-window "*Envs Report*" 'display-buffer nil
     (princ "* Active Environments:\n")
-    (cl-loop for id being the hash-keys of lenv-active
+    (cl-loop for id being the hash-keys of librarian--envs-active
              using (hash-values state)
-             for handler = (lenv-get-handler id)
+             for handler = (librarian--envs-get-handler id)
              do
-             (princ (format "** %s : (%s)\n" id (lenv-state-status state)))
-             (princ (format "- Root: %s\n" (lenv-loc-root (lenv-state-loc state))))
-             (princ (format "- Args: %s\n" (lenv-state-data state)))
+             (princ (format "** %s : (%s)\n" id (librarian--envs-state-status state)))
+             (princ (format "- Root: %s\n" (librarian--envs-loc-root (librarian--envs-state-loc state))))
+             (princ (format "- Args: %s\n" (librarian--envs-state-data state)))
              )
     (princ "\n* Registered Environment Handlers:\n")
-    (cl-loop for id being the hash-keys of lenv-registered
+    (cl-loop for id being the hash-keys of librarian--envs-registered
              using (hash-values handler)
              do
              (princ (format "** %s: \n" id))
@@ -394,25 +394,25 @@ eg: Setting head-line-format
   :lighter "LEnv-m"
   )
 
-(defun lenv-mode-activator ()
+(defun librarian--envs-mode-activator ()
   """ adds to the modeline var """
-  (let* ((states (hash-table-values lenv-active))
+  (let* ((states (hash-table-values librarian--envs-active))
          )
     (cl-loop for state in states
-             for headline = (lenv-state-modeline state)
+             for headline = (librarian--envs-state-modeline state)
              if headline
-             do (add-to-list 'lenv-modeline-list " ")
-             and do (add-to-list 'lenv-modeline-list headline)
+             do (add-to-list 'librarian--envs-modeline-list " ")
+             and do (add-to-list 'librarian--envs-modeline-list headline)
              )
     )
   )
 
-(defun lenv-head-activator ()
+(defun librarian--envs-head-activator ()
   "Adds to the buffer local header-line-format"
-  (let* ((states (hash-table-values lenv-active))
+  (let* ((states (hash-table-values librarian--envs-active))
          )
     (cl-loop for state in states
-             for headline = (lenv-state-headline state)
+             for headline = (librarian--envs-state-headline state)
              if headline
              do
              (add-to-list 'header-line-format headline)
@@ -420,15 +420,8 @@ eg: Setting head-line-format
     )
   )
 
-(add-hook 'librarian-env-minor-mode-hook #'lenv-head-activator)
-(add-hook 'librarian-env-minor-mode-hook #'lenv-mode-activator)
+(add-hook 'librarian-env-minor-mode-hook #'librarian--envs-head-activator)
+(add-hook 'librarian-env-minor-mode-hook #'librarian--envs-mode-activator)
 
 (provide 'librarian--envs)
-
 ;;; librarian-envs.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lenv-" . "librarian--envs-")
-;; ("make-lenv-" . "make-librarian--envs-")
-;; )
-;; End:

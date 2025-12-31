@@ -1,6 +1,7 @@
 ;;; librarian-docsets.el -*- lexical-binding: t; -*-
 
 (eval-when-compile
+  (require 'evil)
   (require 'dash-docs)
   (require 'librarian--util)
   (require 'counsel-dash)
@@ -8,14 +9,14 @@
 
 (defvar dash-docs-docsets)
 
-(defvar lid-defaults '(librarian--backend--docsets-dash
+(defvar librarian--docsets-defaults '(librarian--backend--docsets-dash
                        librarian--backend--docsets-online
                        )
   )
 
-(defvar lid-path nil)
+(defvar librarian--docsets-path nil)
 
-(defun lid-consult-search (sync cb)
+(defun librarian--docsets-consult-search (sync cb)
   (lambda (action)
     (pcase action
       ((pred stringp)
@@ -27,7 +28,7 @@
 
 ;;;###autoload (defalias 'librarian-docsets-consult #'librarian--docsets-consult)
 ;;;###autoload (autoload 'librarian--docsets-consult "librarian--docsets")
-(defun lid-consult (arg &optional query docsets)
+(defun librarian--docsets-consult (arg &optional query docsets)
   "Librarian query relevant docsets
 
 QUERY is a string and docsets in an array of strings, each a name of a Dash
@@ -57,12 +58,8 @@ install it if necessary)."
       (setq selected (helm-dash-read-docset "Select docset" (helm-dash-official-docsets)))
       (unless (dash-docs-docset-path selected)
         (librarian-install-docset selected)))
-    (librarian-docset-consult query selected)))
+    (librarian--docsets-consult nil query selected))
+  )
 
 (provide 'librarian--docsets)
 ;;; librarian--docsets.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lid-" . "librarian--docsets-")
-;; )
-;; End:

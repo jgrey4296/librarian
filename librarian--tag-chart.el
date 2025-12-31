@@ -7,7 +7,7 @@
 
   )
 
-(defun litc-split-temp-buffer-create (args)
+(defun librarian--tag-chart-split-temp-buffer-create (args)
   "Given a pair, create a temp buffer in the cdr directory,
 naming the directory based on the first line of text and insert the car "
   ;; (message "Creating Temp buffer for: %s" args)
@@ -21,20 +21,20 @@ naming the directory based on the first line of text and insert the car "
     )
   )
 
-(defun litc--make-bar-chart (data maxTagLength maxTagAmnt)
+(defun librarian--tag-chart--make-bar-chart (data maxTagLength maxTagAmnt)
   " Make a bar chart from passed in hashtable and descriptive information "
   (let* ((maxTagStrLen (length (number-to-string maxTagAmnt)))
          (maxTagLength-bounded (min 40 maxTagLength))
          (max-column (- fill-column (+ 3 maxTagLength-bounded maxTagStrLen 3 3)))
          (bar-div (/ (float max-column) maxTagAmnt))
-         (partial-chart-line-fn (-partial #'litc--bar-chart-line
+         (partial-chart-line-fn (-partial #'librarian--tag-chart--bar-chart-line
                                           maxTagStrLen
                                           maxTagLength-bounded
                                           bar-div))
          )
     (mapcar partial-chart-line-fn data)))
 
-(defun litc--bar-chart-line (maxTagStrLen maxTagLength-bounded bar-div x)
+(defun librarian--tag-chart--bar-chart-line (maxTagStrLen maxTagLength-bounded bar-div x)
   "Construct a single line of a bar chart"
   (let* ((tag (car x))
          (tag-len (length tag))
@@ -60,7 +60,7 @@ naming the directory based on the first line of text and insert the car "
                    )))
   )
 
-(defun litc--barchart-region()
+(defun librarian--tag-chart--barchart-region()
   " Create a Bar Chart of value pairs of the selected region "
   (interactive)
   (cl-assert (eq evil-state 'visual))
@@ -75,11 +75,11 @@ naming the directory based on the first line of text and insert the car "
     ;; (message "Getting Tags for all buffers to depth: %s" depth)
     (mapc (lambda (x) (cl-incf (gethash (car x) count-hash 0) (string-to-number (cadr x)))) pairs)
     (if (not (hash-table-empty-p count-hash))
-        (litc-tag-counts count-hash (buffer-name))
+        (librarian--tag-chart-tag-counts count-hash (buffer-name))
       (message "No Tags in buffer")))
   )
 
-(defun litc--chart-format-temp-buffer (name source_name)
+(defun librarian--tag-chart--chart-format-temp-buffer (name source_name)
   " Format bar chart buffer as an org buffer.
 Adds a header, separates similar counted lines into sub headings,
 and sorts groups alphabetically"
@@ -126,7 +126,7 @@ and sorts groups alphabetically"
     )
   )
 
-(defun litc-tag-counts (counthash name)
+(defun librarian--tag-chart-tag-counts (counthash name)
   "Given a hashtable of counts, create a buffer with a bar chart of the counts"
   ;; (message "Charting: %s %s" counthash name)
   (let* ((hashPairs    (-zip-pair (hash-table-keys counthash) (hash-table-values counthash)))
@@ -140,13 +140,13 @@ and sorts groups alphabetically"
                              nil
                              ;; Todo: Expand this func to group and add org headings
                              (mapc (lambda (x) (princ (format "%s\n" x)))
-                                   (litc--make-bar-chart sorted maxTagLength maxTagAmnt))
+                                   (librarian--tag-chart--make-bar-chart sorted maxTagLength maxTagAmnt))
                              )
-    (litc--chart-format-temp-buffer "*Tags*" name)
+    (librarian--tag-chart--chart-format-temp-buffer "*Tags*" name)
     )
   )
 
-(defun litc-occurrences ()
+(defun librarian--tag-chart-occurrences ()
   " Create a Bar Chart of Tags in the current buffer "
   (interactive)
   (let* ((depth-arg evil-ex-argument)
@@ -158,13 +158,13 @@ and sorts groups alphabetically"
     (maphash (lambda (k v) (cl-incf (gethash k alltags 0) v)) (librarian-get-buffer-tags))
     (if (hash-table-empty-p alltags)
         (message "No Tags in buffer"r
-                 (litc-tag-counts alltags (buffer-name))
+                 (librarian--tag-chart-tag-counts alltags (buffer-name))
                  )
       )
     )
   )
 
-(defun litc-occurrences-in-open-org-buffers()
+(defun librarian--tag-chart-occurrences-in-open-org-buffers()
   " Retrieve all tags in all open org buffers, print to a temporary buffer "
   (interactive "p")
   (let* ((alltags    (make-hash-table :test 'equal))
@@ -181,14 +181,9 @@ and sorts groups alphabetically"
              )
     (if (hash-table-empty-p alltags)
         (message "No Tags in buffers")
-      (litc-tag-counts alltags "Active Files"))
+      (librarian--tag-chart-tag-counts alltags "Active Files"))
     )
   )
 
 (provide 'librarian--tag-chart)
 ;;; librarian--tag-chart.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("litc-" . "librarian--tag-chart-")
-;; )
-;; End:

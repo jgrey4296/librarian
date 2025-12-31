@@ -9,37 +9,37 @@
 
 ;;-- vars
 
-(defvar lib-fill-column 50000)
+(defvar librarian--biblio-edit-fill-column 50000)
 
-(defvar lib-helm-candidates nil)
+(defvar librarian--biblio-edit-helm-candidates nil)
 
-(defvar lib-candidates-names '())
+(defvar librarian--biblio-edit-candidates-names '())
 
-(defvar lib-rand-log ".emacs_rand_bib_log")
+(defvar librarian--biblio-edit-rand-log ".emacs_rand_bib_log")
 
-(defvar lib-open-doi-with-pdf        nil)
+(defvar librarian--biblio-edit-open-doi-with-pdf        nil)
 
-(defvar lib-open-url-with-pdf        nil)
+(defvar librarian--biblio-edit-open-url-with-pdf        nil)
 
-(defvar lib-todo-loc                 nil)
+(defvar librarian--biblio-edit-todo-loc                 nil)
 
-(defvar lib-todo-files-loc           nil)
+(defvar librarian--biblio-edit-todo-files-loc           nil)
 
-(defvar lib-completions-loc          nil)
+(defvar librarian--biblio-edit-completions-loc          nil)
 
-(defvar lib-export-bib-loc           nil)
+(defvar librarian--biblio-edit-export-bib-loc           nil)
 
-(defvar lib-temp-tex-loc             nil)
+(defvar librarian--biblio-edit-temp-tex-loc             nil)
 
-(defvar lib-search-fields               '("tags" "year" "publisher"))
+(defvar librarian--biblio-edit-search-fields               '("tags" "year" "publisher"))
 
-(defvar lib-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
+(defvar librarian--biblio-edit-scholar-search-fields       '("author" "editor" "ALTauthor" "Alteditor" "year" "doi" "isbn"))
 
-(defvar lib-scholar-search-fields-exact '("title"))
+(defvar librarian--biblio-edit-scholar-search-fields-exact '("title"))
 
-(defvar lib-doi-url               "https://doi.org/%s")
+(defvar librarian--biblio-edit-doi-url               "https://doi.org/%s")
 
-(defvar lib-completion-display-formats
+(defvar librarian--biblio-edit-completion-display-formats
       '(
         (judicial . "${=has-pdf=:1} ${=type=:10} || ${year:4} || ${author:20} || ${short_parties:80} || ${tags:*}")
         (review   . "${=has-pdf=:1} REVIEW     || ${year:4} || ${author:20} || REVIEW ${title:73} || ${tags:*}")
@@ -51,26 +51,26 @@
       "Display formats for the ivy bibtex. see bibtex-completion-display-formats"
       )
 
-(setq bibtex-completion-display-formats lib-completion-display-formats)
+(setq bibtex-completion-display-formats librarian--biblio-edit-completion-display-formats)
 
-(defvar lib-pdf-loc-regexp               "file[[:digit:]]*\s*=\s*{\\(.+\\)/\\(.+pdfs\\)?")
+(defvar librarian--biblio-edit-pdf-loc-regexp               "file[[:digit:]]*\s*=\s*{\\(.+\\)/\\(.+pdfs\\)?")
 
-(defvar lib-pdf-replace-match-string     "~/")
+(defvar librarian--biblio-edit-pdf-replace-match-string     "~/")
 
-(defvar lib-pdf-replace-library-string   "pdfs")
+(defvar librarian--biblio-edit-pdf-replace-library-string   "pdfs")
 
 (defvar bibtex-completion-pdf-open-function 'browse-url)
 
-(defvar lib-downloads-bookmark "downloads")
+(defvar librarian--biblio-edit-downloads-bookmark "downloads")
 
-(defvar lib-dropbox-bookmark "dropbox")
+(defvar librarian--biblio-edit-dropbox-bookmark "dropbox")
 
-(defvar lib-todos-bookmark "todo.pdfs")
+(defvar librarian--biblio-edit-todos-bookmark "todo.pdfs")
 ;;-- end vars
 
 ;;-- commands
 
-(defun lib-entry-type ()
+(defun librarian--biblio-edit-entry-type ()
   " Edit the @type of a bibtex entry, using
 bibtex-BibTeX-entry-alist for completion options "
   (interactive)
@@ -86,7 +86,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun lib-copy-entry ()
+(defun librarian--biblio-edit-copy-entry ()
   " Copy the entire entry under point "
   (interactive)
   (save-excursion
@@ -97,20 +97,20 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun lib-copy-key ()
+(defun librarian--biblio-edit-copy-key ()
   " Copy the cite key of the entry under point "
   (interactive)
   (kill-new (bibtex-completion-get-key-bibtex))
   (message "Copied Key: %s" (current-kill 0 t))
   )
 
-(defun lib-copy-title ()
+(defun librarian--biblio-edit-copy-title ()
   (interactive)
   (kill-new (bibtex-autokey-get-field "title"))
   (message "Copied Title: %s" (current-kill 0 t))
   )
 
-(defun lib-copy-field ()
+(defun librarian--biblio-edit-copy-field ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -121,7 +121,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun lib-quickswap ()
+(defun librarian--biblio-edit-quickswap ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -133,7 +133,7 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun lib-rename-file ()
+(defun librarian--biblio-edit-rename-file ()
   " Rename the file associated with the record "
   (interactive)
   (bibtex-beginning-of-entry)
@@ -153,29 +153,29 @@ bibtex-BibTeX-entry-alist for completion options "
     )
   )
 
-(defun lib-dired-unify-pdf-locations ()
+(defun librarian--biblio-edit-dired-unify-pdf-locations ()
   "Unify bibtex pdf paths of marked files"
   (interactive)
-  (seq-each 'lib-unify-pdf-locations-in-file (dired-get-marked-files))
+  (seq-each 'librarian--biblio-edit-unify-pdf-locations-in-file (dired-get-marked-files))
   )
 
-(defun lib-unify-pdf-locations-in-file (name)
+(defun librarian--biblio-edit-unify-pdf-locations-in-file (name)
   "Change all pdf locations in bibtex file to relative,
 ensuring they work across machines "
   (message "Unifying Locations in %s" name)
   (with-temp-buffer
     (insert-file-contents name t)
     (goto-char (point-min))
-    (while (re-search-forward lib-pdf-loc-regexp nil t)
-      (replace-match lib-pdf-replace-match-string nil nil nil 1)
+    (while (re-search-forward librarian--biblio-edit-pdf-loc-regexp nil t)
+      (replace-match librarian--biblio-edit-pdf-replace-match-string nil nil nil 1)
       (when (eq 6 (length (match-data)))
-        (replace-match lib-pdf-replace-library-string t nil nil 2))
+        (replace-match librarian--biblio-edit-pdf-replace-library-string t nil nil 2))
       )
     (write-file name)
     )
   )
 
-(defun lib-swap-editor-author ()
+(defun librarian--biblio-edit-swap-editor-author ()
   (interactive)
   (save-excursion
     (bibtex-beginning-of-entry)
@@ -201,7 +201,7 @@ ensuring they work across machines "
     )
   )
 
-(defun lib-swap-booktitle-journal ()
+(defun librarian--biblio-edit-swap-booktitle-journal ()
   (interactive)
     (save-excursion
     (bibtex-beginning-of-entry)
@@ -227,7 +227,7 @@ ensuring they work across machines "
     )
   )
 
-(defun lib-open-pdf (&optional path)
+(defun librarian--biblio-edit-open-pdf (&optional path)
   "Open pdf for a bibtex entry, if it exists.
 assumes point is in
 the entry of interest in the bibfile.  but does not check that."
@@ -244,28 +244,28 @@ the entry of interest in the bibfile.  but does not check that."
             (t (call-process "open" nil nil nil target))
             )
 
-      (when lib-open-doi-with-pdf
-          (lib-open-doi))
-      (when lib-open-url-with-pdf
-          (lib-open-url))
+      (when librarian--biblio-edit-open-doi-with-pdf
+          (librarian--biblio-edit-open-doi))
+      (when librarian--biblio-edit-open-url-with-pdf
+          (librarian--biblio-edit-open-url))
       )))
 
-(defun lib-open-url ()
+(defun librarian--biblio-edit-open-url ()
   " Open the current entry's url in browser "
   (interactive)
   (when (bibtex-text-in-field "url")
     (librarian-browse-open (bibtex-text-in-field "url")))
   )
 
-(defun lib-open-doi ()
+(defun librarian--biblio-edit-open-doi ()
   " Follow the doi link of the current entry in a browser "
   (interactive)
   (when (bibtex-text-in-field "doi")
-    (browse-url (format lib-doi-url (bibtex-text-in-field "doi")))
+    (browse-url (format librarian--biblio-edit-doi-url (bibtex-text-in-field "doi")))
     )
   )
 
-(defun lib-open-folder ()
+(defun librarian--biblio-edit-open-folder ()
   " Open the associated file's folder in finder "
   (interactive)
   (let* ((target (bibtex-autokey-get-field '("file" "OPTfile"))))
@@ -276,16 +276,16 @@ the entry of interest in the bibfile.  but does not check that."
     )
   )
 
-(defun lib-load-random ()
+(defun librarian--biblio-edit-load-random ()
   " Run in a bibtex file, opens a random entry externally,
       and logs it has been opened in a separate file.
 
-Log into lib-rand-log.
+Log into librarian--biblio-edit-rand-log.
  "
   (interactive)
   (widen)
   (let* ((location (f-dirname (buffer-file-name)))
-         (log_file (f-join location lib-rand-log))
+         (log_file (f-join location librarian--biblio-edit-rand-log))
          (log_hash (if (f-exists? log_file)
                        (with-temp-buffer
                          (insert-file-contents log_file)
@@ -309,7 +309,7 @@ Log into lib-rand-log.
             (write-region "\n" nil log_file 'append)
             (bibtex-narrow-to-entry)
             (goto-char (point-min))
-            (lib-open-pdf)
+            (librarian--biblio-edit-open-pdf)
             (setq entry nil)
             )
           )
@@ -318,7 +318,7 @@ Log into lib-rand-log.
     )
   )
 
-(defun lib-quicklook-pdf ()
+(defun librarian--biblio-edit-quicklook-pdf ()
   "Open pdf for a bibtex entry, if it exists.
 assumes point is in
 the entry of interest in the bibfile.  but does not check that."
@@ -329,7 +329,7 @@ the entry of interest in the bibfile.  but does not check that."
       (browse-url target 'quicklook)
       )))
 
-(defun lib-use-newest-file ()
+(defun librarian--biblio-edit-use-newest-file ()
   "Get the newest pdf or epub from the downloads dir,
 copy it to the bib todo directory,
 and insert it into the current entry "
@@ -347,19 +347,19 @@ and insert it into the current entry "
     (unless newest
       (user-error "No Applicable File Found")
       )
-    (when (f-exists? (f-join lib-todo-files-loc (f-filename newest)))
+    (when (f-exists? (f-join librarian--biblio-edit-todo-files-loc (f-filename newest)))
       (user-error "File already exists in todo directory: %s" newest)
       )
     (message "Newest: %s" newest)
-    (f-move newest (f-join lib-todo-files-loc (f-filename newest)))
+    (f-move newest (f-join librarian--biblio-edit-todo-files-loc (f-filename newest)))
     (bibtex-beginning-of-entry)
     (save-excursion
-      (bibtex-set-field "file" (f-join lib-todo-files-loc (f-filename newest)))
+      (bibtex-set-field "file" (f-join librarian--biblio-edit-todo-files-loc (f-filename newest)))
       )
     )
 )
 
-(defun lib-kill-entry-key ()
+(defun librarian--biblio-edit-kill-entry-key ()
   (interactive)
   (bibtex-beginning-of-entry)
   (let ((key (bibtex-completion-get-key-bibtex)))
@@ -371,7 +371,7 @@ and insert it into the current entry "
     )
   )
 
-(defun lib-lock-key ()
+(defun librarian--biblio-edit-lock-key ()
   (interactive)
   (bibtex-beginning-of-entry)
   (let ((key (bibtex-completion-get-key-bibtex)))
@@ -383,9 +383,9 @@ and insert it into the current entry "
     )
   )
 
-(defun lib-subcite ()
+(defun librarian--biblio-edit-subcite ()
   (interactive)
-  (lib-lock-key)
+  (librarian--biblio-edit-lock-key)
   (bibtex-beginning-of-entry)
   (let* ((entry (bibtex-parse-entry))
          (key (alist-get "=key=" entry nil nil #'s-equals?))
@@ -407,13 +407,13 @@ and insert it into the current entry "
     (insert "author = {},\n")
     (insert "}")
     (bibtex-beginning-of-entry)
-    (lib-edit-field "title")
-    (lib-edit-field "author")
-    (lib-edit-field "pages")
+    (librarian--biblio-edit-edit-field "title")
+    (librarian--biblio-edit-edit-field "author")
+    (librarian--biblio-edit-edit-field "pages")
     )
   )
 
-(defun lib-title-case (x)
+(defun librarian--biblio-edit-title-case (x)
   "Split a string into separated words, and capitalise the first letter of each
 before rejoining "
   (let* ((case-fold-search nil)
@@ -446,26 +446,26 @@ before rejoining "
     )
   )
 
-(defun lib-toggle-doi-load ()
+(defun librarian--biblio-edit-toggle-doi-load ()
   (interactive)
-  (setq lib-open-doi-with-pdf (not lib-open-doi-with-pdf))
-  (message "Open DOI on pdf? %s" lib-open-doi-with-pdf)
+  (setq librarian--biblio-edit-open-doi-with-pdf (not librarian--biblio-edit-open-doi-with-pdf))
+  (message "Open DOI on pdf? %s" librarian--biblio-edit-open-doi-with-pdf)
   )
 
-(defun lib-toggle-url-load ()
+(defun librarian--biblio-edit-toggle-url-load ()
   (interactive)
-  (setq lib-open-url-with-pdf (not lib-open-url-with-pdf))
-  (message "Open URL on pdf? %s" lib-open-url-with-pdf)
+  (setq librarian--biblio-edit-open-url-with-pdf (not librarian--biblio-edit-open-url-with-pdf))
+  (message "Open URL on pdf? %s" librarian--biblio-edit-open-url-with-pdf)
   )
 
-(defun lib-visual-select-entry ()
+(defun librarian--biblio-edit-visual-select-entry ()
   " Evil visual select the current entry "
   (interactive)
   (evil-visual-make-region (bibtex-beginning-of-entry)
                            (bibtex-end-of-entry))
 )
 
-(defun lib-goto-crossref-entry ()
+(defun librarian--biblio-edit-goto-crossref-entry ()
   " Follow the crossref field in the entry "
   (interactive)
   (when (bibtex-text-in-field "crossref")
@@ -473,13 +473,13 @@ before rejoining "
     )
   )
 
-(defun lib-google-scholar (arg)
+(defun librarian--biblio-edit-google-scholar (arg)
   "Open the bibtex entry at point in google-scholar by its doi.
 With arg, searchs the dplp instead.
 "
   (interactive "P")
-  (let* ((search-texts (mapcar #'bibtex-autokey-get-field lib-scholar-search-fields))
-         (exact-texts  (mapcar #'bibtex-autokey-get-field lib-scholar-search-fields-exact))
+  (let* ((search-texts (mapcar #'bibtex-autokey-get-field librarian--biblio-edit-scholar-search-fields))
+         (exact-texts  (mapcar #'bibtex-autokey-get-field librarian--biblio-edit-scholar-search-fields-exact))
          (exact-string (s-join " " (mapcar #'(lambda (x) (format "\"%s\"" x))
                                            (-filter #'(lambda (x) (not (string-empty-p x))) exact-texts))))
          (all-terms (s-concat exact-string " " (s-join " " search-texts)))
@@ -489,7 +489,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun lib-lookup-orcid (arg)
+(defun librarian--biblio-edit-lookup-orcid (arg)
   (interactive "P")
   (let* ((fields (split-string (bibtex-autokey-get-field '("author" "editor")) " and " t " +"))
          (chosen (ivy-read "Search For: " fields))
@@ -499,29 +499,29 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun lib-window-set-downloads ()
+(defun librarian--biblio-edit-window-set-downloads ()
   (interactive)
   (let* ((top-wind (split-window-right))
          (bot-wind (with-selected-window top-wind
                      (split-window-below)))
          )
-    (with-selected-window top-wind (bookmark-jump lib-downloads-bookmark))
-    (with-selected-window bot-wind (bookmark-jump lib-todos-bookmark))
+    (with-selected-window top-wind (bookmark-jump librarian--biblio-edit-downloads-bookmark))
+    (with-selected-window bot-wind (bookmark-jump librarian--biblio-edit-todos-bookmark))
     )
   )
 
-(defun lib-window-set-dropbox()
+(defun librarian--biblio-edit-window-set-dropbox()
   (interactive)
   (let* ((top-wind (split-window-right))
          (bot-wind (with-selected-window top-wind
                      (split-window-below)))
          )
-    (with-selected-window top-wind (bookmark-jump lib-dropbox-bookmark))
-    (with-selected-window bot-wind (bookmark-jump lib-todos-bookmark))
+    (with-selected-window top-wind (bookmark-jump librarian--biblio-edit-dropbox-bookmark))
+    (with-selected-window bot-wind (bookmark-jump librarian--biblio-edit-todos-bookmark))
     )
   )
 
-(defun lib-window-file-folder ()
+(defun librarian--biblio-edit-window-file-folder ()
   " Find the folder in which the entry's associated file exists "
   (interactive)
   (let* ((target (bibtex-autokey-get-field '("file" "OPTfile"))))
@@ -535,30 +535,30 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun lib-window-dwim ()
+(defun librarian--biblio-edit-window-dwim ()
   (interactive)
   (let ((entry-start (save-excursion (bibtex-beginning-of-entry) (point)))
         (entry-end (save-excursion (bibtex-end-of-entry) (point)))
         )
     (if (and (<= entry-start (point))
              (<= (point) entry-end))
-        (unless (lib-window-file-folder)
-          (lib-window-set-downloads))
-      (lib-window-set-downloads))
+        (unless (librarian--biblio-edit-window-file-folder)
+          (librarian--biblio-edit-window-set-downloads))
+      (librarian--biblio-edit-window-set-downloads))
     )
   )
 
-(defun lib-sort-buffer-by-year ()
+(defun librarian--biblio-edit-sort-buffer-by-year ()
   (interactive)
   (let ((bibtex-autokey-year-length 4)
         (bibtex-maintain-sorted-entries (list
-                                         #'(lambda () (string-to-number (lib-autokey-get-year)))
+                                         #'(lambda () (string-to-number (librarian--biblio-edit-autokey-get-year)))
                                          #'<)))
     (bibtex-sort-buffer)
     )
   )
 
-(defun lib-sort-buffer-by-type ()
+(defun librarian--biblio-edit-sort-buffer-by-type ()
   (interactive)
   (let ((bibtex-autokey-year-length 4)
         (bibtex-maintain-sorted-entries 'entry-class)
@@ -567,7 +567,7 @@ With arg, searchs the dplp instead.
     )
   )
 
-(defun lib-autokey-get-year ()
+(defun librarian--biblio-edit-autokey-get-year ()
   "Return year field contents as a string obeying `bibtex-autokey-year-length'."
   (let* ((str (bibtex-autokey-get-field '("date" "year"))) ; possibly ""
          (year (or (and (iso8601-valid-p str)
@@ -585,8 +585,3 @@ With arg, searchs the dplp instead.
 (provide 'librarian--biblio-edit)
 
 ;;; librarian--biblio-edit.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lib-" . "librarian--biblio-edit-")
-;; )
-;; End:

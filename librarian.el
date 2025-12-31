@@ -21,37 +21,35 @@
 ;;; Code:
 
 
-(require 'lib--util)
-(require 'lib--backend)
-(require 'lib--structs)
+(require 'librarian--util)
+(require 'librarian--backend)
+(require 'librarian--structs)
 
-(require 'lib--biblio)
-(require 'lib--browse)
-(require 'lib--config)
-(require 'lib--docsets)
-(require 'lib--doc)
-(require 'lib--envs)
-(require 'lib--man)
-(require 'lib--online)
-(require 'lib--regular)
-(require 'lib--tag)
-(require 'lib--tag-chart)
-(require 'lib--tag-mode)
-(require 'lib--words)
-(require 'lib--insert)
+(require 'librarian--biblio)
+(require 'librarian--browse)
+(require 'librarian--config)
+(require 'librarian--docsets)
+(require 'librarian--doc)
+(require 'librarian--envs)
+(require 'librarian--man)
+(require 'librarian--online)
+(require 'librarian--regular)
+(require 'librarian--tag)
+(require 'librarian--tag-chart)
+(require 'librarian--tag-mode)
+(require 'librarian--words)
+(require 'librarian--insert)
 
-(librarian--doc-init-defaults)
+(defconst librarian-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
 
-(defconst lib-active-on-modes (list 'text-mode 'prog-mode 'conf-mode))
+(defconst librarian-forbid-modes (list 'magit-mode))
 
-(defconst lib-forbid-modes (list 'magit-mode))
+(defvar librarian-mode-map (make-sparse-keymap))
 
-(defvar lib-mode-map (make-sparse-keymap))
-
-(evil-make-intercept-map lib-mode-map 'normal)
+(evil-make-intercept-map librarian-mode-map 'normal)
 
 ;;;###autoload (autoload 'librarian-mode "librarian")
-(define-minor-mode lib-mode
+(define-minor-mode librarian-mode
   "An interface for controlling lookups, spelling, documentation, online search"
   :lighter "Librarian"
   :keymap librarian-mode-map
@@ -194,8 +192,3 @@
 
 (provide 'librarian)
 ;;; librarian.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lib-" . "librarian-")
-;; )
-;; End:

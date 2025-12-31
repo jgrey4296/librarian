@@ -17,18 +17,18 @@
   (require 'company-ispell nil t)
   )
 
-(defvar liw-dictionary-prefer-offline nil)
+(defvar librarian--words-dictionary-prefer-offline nil)
 
-(defvar liw--lookup-define-fn
-  (cond ((and (featurep 'wordnut) liw-dictionary-prefer-offline) #'wordnut-search)
+(defvar librarian--words--lookup-define-fn
+  (cond ((and (featurep 'wordnut) librarian--words-dictionary-prefer-offline) #'wordnut-search)
         ((featurep 'define-word) #'define-word)
         ((featurep 'wordnut) #'wordnut-search)
         (t (lambda (x) (user-error "No dictionary backend is available"))):w
         )
   )
-(defvar liw--lookup-define-alt-fn #'helm-wordnet-suggest)
+(defvar librarian--words--lookup-define-alt-fn #'helm-wordnet-suggest)
 
-(defvar liw--lookup-synonyms-fn
+(defvar librarian--words--lookup-synonyms-fn
   (cond ((featurep 'synosaurus) #'synosaurus-choose-and-replace)
         ((featurep 'powerthesaurus) #'powerthesaurus-lookup-word-dwim)
         (t (lambda (x) (user-error "No thesaurus backend is available")))
@@ -43,8 +43,8 @@
          current-prefix-arg))
   (message "Looking up dictionary definition for %S" identifier)
   (if arg
-      (funcall liw--lookup-define-alt-fn)
-    (funcall liw--lookup-define-fn identifier)
+      (funcall librarian--words--lookup-define-alt-fn)
+    (funcall librarian--words--lookup-define-fn identifier)
     )
   )
 
@@ -54,13 +54,8 @@
    (list (librarian--util-get 'word) ; TODO actually use this
          current-prefix-arg))
   (message "Looking up synonyms for %S" identifier)
-  (funcall liw--lookup-synonyms-fn)
+  (funcall librarian--words--lookup-synonyms-fn)
   )
 
 (provide 'librarian--words)
 ;;; librarian--words.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("liw-" . "librarian--words-")
-;; )
-;; End:

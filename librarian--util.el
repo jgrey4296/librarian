@@ -1,19 +1,19 @@
 ;;; librarian--util.el -*- lexical-binding: t; -*-
 
-(defvar liu-local-var-skip-regexp (rx (or "-map"
+(defvar librarian--util-local-var-skip-regexp (rx (or "-map"
                                           "keymap"
                                           "display-table"
                                           "imenu-generic-expression"
                                           "font-lock-keywords"))
   )
 
-(defvar liu-xwidget-webkit-last-session-buffer nil)
+(defvar librarian--util-xwidget-webkit-last-session-buffer nil)
 
-(defvar liu-refocus-target  "iTerm")
+(defvar librarian--util-refocus-target  "iTerm")
 
-(defvar liu--buffer-display-fn #'+popup-buffer)
+(defvar librarian--util--buffer-display-fn #'+popup-buffer)
 
-(defun liu-get (&optional thing prompt arg)
+(defun librarian--util-get (&optional thing prompt arg)
   "Grab the current selection, THING at point, or xref identifier at point.
 returns a str, potentially with text properties"
   (interactive "i\ni\np")
@@ -39,7 +39,7 @@ returns a str, potentially with text properties"
     )
   )
 
-(defun liu-xwidget-webkit-open-url-fn (url &optional new-session)
+(defun librarian--util-xwidget-webkit-open-url-fn (url &optional new-session)
   (if (not (display-graphic-p))
       (browse-url url)
     (unless (featurep 'xwidget-internal)
@@ -47,21 +47,21 @@ returns a str, potentially with text properties"
     (let ((orig-last-session-buffer (if (boundp 'xwidget-webkit-last-session-buffer)
                                         xwidget-webkit-last-session-buffer
                                       nil)))
-      (setq xwidget-webkit-last-session-buffer liu-xwidget-webkit-last-session-buffer)
+      (setq xwidget-webkit-last-session-buffer librarian--util-xwidget-webkit-last-session-buffer)
       (save-window-excursion
         (xwidget-webkit-browse-url url new-session))
       (pop-to-buffer xwidget-webkit-last-session-buffer)
-      (setq liu-xwidget-webkit-last-session-buffer xwidget-webkit-last-session-buffer
+      (setq librarian--util-xwidget-webkit-last-session-buffer xwidget-webkit-last-session-buffer
             xwidget-webkit-last-session-buffer orig-last-session-buffer))))
 
-(defun liu--regain-focus ()
+(defun librarian--util--regain-focus ()
   " utility to regain focus when a command will
 change focus to something else (preview, firefox)
 force it back to the terminal
 "
   (when (eq system-type 'darwin)
     (call-process "osascript" nil nil nil
-                  "-e" (format "tell application \"%s\"" liu-refocus-target)
+                  "-e" (format "tell application \"%s\"" librarian--util-refocus-target)
                   "-e" "activate"
                   "-e" "end tell"
                   )
@@ -79,7 +79,7 @@ force it back to the terminal
             )
   )
 
-(defun liu-pop-to-xref (result)
+(defun librarian--util-pop-to-xref (result)
   " Given a string | xref (item?)
 Display the result
  "
@@ -90,7 +90,7 @@ Display the result
            (marker (save-excursion (xref-location-marker (xref-item-location (cl-first xrefs)))))
            (buf    (marker-buffer marker))
            )
-      (funcall liu--buffer-display-fn buf)
+      (funcall librarian--util--buffer-display-fn buf)
       (with-current-buffer buf
         (xref--goto-char marker))
       )
@@ -109,7 +109,7 @@ Display the result
                         (emacs-lisp-mode))
           val)
       (cl-loop for x in vars do
-               (if (or (string-match liu-local-var-skip-regexp
+               (if (or (string-match librarian--util-local-var-skip-regexp
                                      (symbol-name (car x)))
                         (< 40 (length (format "%s" (cdr x)))))
                    (princ (format "(%s : Skipped)" (car x)))
@@ -134,7 +134,7 @@ Display the result
     )
   )
 
-(defun liu-fix-ivy-xrefs (fn fetcher alist)
+(defun librarian--util-fix-ivy-xrefs (fn fetcher alist)
   "HACK Fix #4386: `ivy-xref-show-xrefs' calls `fetcher' twice, which has
   side effects that breaks in some cases (i.e. on `dired-do-find-regexp').
 originally from doom
@@ -146,8 +146,3 @@ originally from doom
 
 (provide 'librarian--util)
 ;;; librarian--util.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("liu-" . "librarian--util-")
-;; )
-;; End:

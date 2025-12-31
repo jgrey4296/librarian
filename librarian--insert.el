@@ -1,4 +1,4 @@
-;;; lib-.el -*- lexical-binding: t; -*-
+;;; librarian--insert-.el -*- lexical-binding: t; -*-
 ;; TODO handle name conflicts between modes
 
 (eval-when-compile
@@ -22,15 +22,15 @@
 
 (defvar librarian-insert-loc nil "Where Insert files are located")
 
-(defvar lib-cache     (make-hash-table :test 'equal))
+(defvar librarian--insert-cache     (make-hash-table :test 'equal))
 
-(defvar lib-key-cache (make-hash-table :test 'equal))
+(defvar librarian--insert-key-cache (make-hash-table :test 'equal))
 
-(defvar lib-processors (make-hash-table :test 'equal))
+(defvar librarian--insert-processors (make-hash-table :test 'equal))
 
-(defvar-local lib-keys nil)
+(defvar-local librarian--insert-keys nil)
 
-(defun lib--propertize (mode file)
+(defun librarian--insert--propertize (mode file)
   (let ((base (format "%-20s # %s" (f-filename file) mode)))
     (set-text-properties 0 (length base) `(path ,file) base)
     base
@@ -38,18 +38,18 @@
   )
 
 ;;;###autoload (autoload 'librarian--insert-clear-caches "librarian--insert")
-(defun lib-clear-caches ()
+(defun librarian--insert-clear-caches ()
   "Clear and Rebuild the cache"
   (interactive)
   (message "Clearing General Insert Cache")
-  (setq lib-cache (make-hash-table :test 'equal)
-        lib-key-cache (make-hash-table :test 'equal)
+  (setq librarian--insert-cache (make-hash-table :test 'equal)
+        librarian--insert-key-cache (make-hash-table :test 'equal)
         )
-  (setq-local lib-keys nil)
-  (lib-build-cache)
+  (setq-local librarian--insert-keys nil)
+  (librarian--insert-build-cache)
   )
 
-(defun lib-build-cache ()
+(defun librarian--insert-build-cache ()
   " Build the buffer local general insert cache "
   (interactive)
   (let ((modes (append (parent-mode-list major-mode)
@@ -59,25 +59,25 @@
                        ))
         )
     (when librarian-insert-loc
-      (setq-local lib-keys
+      (setq-local librarian--insert-keys
                   (cl-loop for mode in modes
                            for exists = (f-exists? (f-join librarian-insert-loc (symbol-name mode)))
-                           when (and exists (not (gethash mode lib-key-cache)))
+                           when (and exists (not (gethash mode librarian--insert-key-cache)))
                            do
                            (puthash mode
-                                    (mapcar (-partial #'lib--propertize (symbol-name mode))
+                                    (mapcar (-partial #'librarian--insert--propertize (symbol-name mode))
                                             (-reject (-partial #'f-ext? "DS_Store")
                                                      (f-files (f-join librarian-insert-loc (symbol-name mode)))))
-                                    lib-key-cache)
+                                    librarian--insert-key-cache)
                            when exists
-                           append (gethash mode lib-key-cache)
+                           append (gethash mode librarian--insert-key-cache)
                            )
                   )
       )
     )
   )
 
-(defun lib-default (x)
+(defun librarian--insert-default (x)
   "The Default insertion function.
 Splits the result by '#'
 "
@@ -85,26 +85,26 @@ Splits the result by '#'
   )
 
 ;;;###autoload (autoload 'librarian--insert-trigger "librarian--insert")
-(defun lib-trigger ()
+(defun librarian--insert-trigger ()
   " Entry ivy for insertions "
   (interactive)
-  (ivy-read "Insert: " lib-keys
+  (ivy-read "Insert: " librarian--insert-keys
             :require-match t
             :sort t
-            :action #'lib-call-sub-ivy
+            :action #'librarian--insert-call-sub-ivy
             )
   )
 
-(defun lib-call-sub-ivy (selected)
+(defun librarian--insert-call-sub-ivy (selected)
   "The ivy for actually inserting a result"
-  (unless (gethash selected lib-cache)
-    (puthash selected (lib-load-file
+  (unless (gethash selected librarian--insert-cache)
+    (puthash selected (librarian--insert-load-file
                        (get-text-property 0 'path selected))
-             lib-cache))
+             librarian--insert-cache))
 
-  (let* ((vals (gethash selected lib-cache))
+  (let* ((vals (gethash selected librarian--insert-cache))
          (selected-core (car (split-string selected "#" t " +")))
-         (processor (gethash `(,major-mode ,selected-core) lib-processors #'lib-default))
+         (processor (gethash `(,major-mode ,selected-core) librarian--insert-processors #'librarian--insert-default))
          )
     (message "Retrieved: %s : %s : %s" major-mode selected-core processor)
     (when (and vals processor)
@@ -118,17 +118,17 @@ Splits the result by '#'
   )
 
 ;;;###autoload (autoload 'librarian--insert-register-processor  "librarian--insert")
-(defun lib-register-processor (mode key fn)
+(defun librarian--insert-register-processor (mode key fn)
     "For a {mode} and a {key} group of inserts in that mode,
 use {fn} to transform the insert value before inserting
 fn is (lambda (str) (insert str))
 "
-    (when (gethash `(,mode ,key) lib-processors)
+    (when (gethash `(,mode ,key) librarian--insert-processors)
       (display-warning 'librarian-insert (format "Overwriting processor for: %s, %s" mode key)))
-    (puthash `(,mode ,key) fn lib-processors)
+    (puthash `(,mode ,key) fn librarian--insert-processors)
   )
 
-(defun lib-load-file (file)
+(defun librarian--insert-load-file (file)
   "read a (prompt . (items:list)) from the given file"
   (unless (f-exists? file)
     (user-error "Tried To Load a non-existent file: %s" file))
@@ -142,17 +142,12 @@ fn is (lambda (str) (insert str))
   )
 
 ;;;###autoload (autoload 'librarian--insert-minor-mode "librarian--insert")
-(define-minor-mode lib-minor-mode
+(define-minor-mode librarian--insert-minor-mode
   " Generalized insert mode for simple strings"
   :init-value nil
-  :lighter "lib-"
-  (lib-build-cache)
+  :lighter "librarian--insert-"
+  (librarian--insert-build-cache)
 )
 
 (provide 'librarian--insert)
 ;;; librarian--insert.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lib-" . "librarian--insert-")
-;; )
-;; End:

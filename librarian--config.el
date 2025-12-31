@@ -6,35 +6,35 @@
   (declare-function ivy-read "ivy")
   )
 
-(defvar lic-modules-dir nil)
+(defvar librarian--config-modules-dir nil)
 
-(defvar lic-modules-cache nil)
+(defvar librarian--config-modules-cache nil)
 
-(defvar lic-binding-file-name "+bindings.el")
+(defvar librarian--config-binding-file-name "+bindings.el")
 
-(defvar lic-config-file-name "config.el")
+(defvar librarian--config-config-file-name "config.el")
 
-(defvar lic-var-file-name "+vars.el")
+(defvar librarian--config-var-file-name "+vars.el")
 
-(defvar lic-spec-def-file-name "+spec-defs.el")
+(defvar librarian--config-spec-def-file-name "+spec-defs.el")
 
-(defun lic--build-modules-cache ()
-  (let* ((root lic-modules-dir)
-         (groups (f-directories lic-modules-dir))
+(defun librarian--config--build-modules-cache ()
+  (let* ((root librarian--config-modules-dir)
+         (groups (f-directories librarian--config-modules-dir))
          (modules (cl-loop for group in groups
                            append (mapcar #'(lambda (x) (f-join (f-base group) (f-base x)))
                                           (f-directories group))))
          )
-         (setq lic-modules-cache modules)
+         (setq librarian--config-modules-cache modules)
          )
     )
 
 (defun librarian-configs--edit-bindings ()
   (interactive)
-  (unless lic-modules-cache (lic--build-modules-cache))
-  (let* ((bindings (-select #'(lambda (x) (f-exists? (f-join lic-modules-dir  x lic-binding-file-name))) lic-modules-cache))
-         (chosen (ivy-read "Select Module Bindings: " lic-modules-cache :require-match t))
-         (binding (f-join lic-modules-dir chosen lic-binding-file-name))
+  (unless librarian--config-modules-cache (librarian--config--build-modules-cache))
+  (let* ((bindings (-select #'(lambda (x) (f-exists? (f-join librarian--config-modules-dir  x librarian--config-binding-file-name))) librarian--config-modules-cache))
+         (chosen (ivy-read "Select Module Bindings: " librarian--config-modules-cache :require-match t))
+         (binding (f-join librarian--config-modules-dir chosen librarian--config-binding-file-name))
         )
     (if (f-exists? binding)
       (find-file binding)
@@ -45,10 +45,10 @@
 
 (defun librarian-configs--edit-vars ()
   (interactive)
-  (unless lic-modules-cache (lic--build-modules-cache))
-  (let* ((vars (-select #'(lambda (x) (f-exists? (f-join lic-modules-dir  x lic-var-file-name))) lic-modules-cache))
-         (chosen (ivy-read "Select Module Vars: "  lic-modules-cache :require-match t))
-         (varf (f-join lic-modules-dir  chosen lic-var-file-name))
+  (unless librarian--config-modules-cache (librarian--config--build-modules-cache))
+  (let* ((vars (-select #'(lambda (x) (f-exists? (f-join librarian--config-modules-dir  x librarian--config-var-file-name))) librarian--config-modules-cache))
+         (chosen (ivy-read "Select Module Vars: "  librarian--config-modules-cache :require-match t))
+         (varf (f-join librarian--config-modules-dir  chosen librarian--config-var-file-name))
         )
     (if (f-exists? varf)
       (find-file varf)
@@ -59,10 +59,10 @@
 
 (defun librarian-configs--edit-config ()
   (interactive)
-  (unless lic-modules-cache (lic--build-modules-cache))
-  (let* ((config (-select #'(lambda (x) (f-exists? (f-join lic-modules-dir  x lic-config-file-name))) lic-modules-cache))
-         (chosen (ivy-read "Select Module Config: " lic-modules-cache :require-match t))
-         (binding (f-join lic-modules-dir  chosen lic-config-file-name))
+  (unless librarian--config-modules-cache (librarian--config--build-modules-cache))
+  (let* ((config (-select #'(lambda (x) (f-exists? (f-join librarian--config-modules-dir  x librarian--config-config-file-name))) librarian--config-modules-cache))
+         (chosen (ivy-read "Select Module Config: " librarian--config-modules-cache :require-match t))
+         (binding (f-join librarian--config-modules-dir  chosen librarian--config-config-file-name))
         )
     (if (f-exists? binding)
       (find-file binding)
@@ -73,10 +73,10 @@
 
 (defun librarian-configs--edit-spec-defs ()
   (interactive)
-  (unless lic-modules-cache (lic--build-modules-cache))
-  (let* ((config (-select #'(lambda (x) (f-exists? (f-join lic-modules-dir  x lic-config-file-name))) lic-modules-cache))
-         (chosen (ivy-read "Select Module Config: " lic-modules-cache :require-match t))
-         (binding (f-join lic-modules-dir  chosen lic-spec-def-file-name))
+  (unless librarian--config-modules-cache (librarian--config--build-modules-cache))
+  (let* ((config (-select #'(lambda (x) (f-exists? (f-join librarian--config-modules-dir  x librarian--config-config-file-name))) librarian--config-modules-cache))
+         (chosen (ivy-read "Select Module Config: " librarian--config-modules-cache :require-match t))
+         (binding (f-join librarian--config-modules-dir  chosen librarian--config-spec-def-file-name))
         )
     (if (f-exists? binding)
       (find-file binding)
@@ -87,8 +87,3 @@
 
 (provide 'librarian--config)
 ;;; librarian--config.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lic-" . "librarian--config-")
-;; )
-;; End:

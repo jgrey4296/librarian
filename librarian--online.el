@@ -5,16 +5,16 @@
   (require 'librarian--browse)
   )
 
-(defvar lio-providers (make-hash-table :test #'equal))
+(defvar librarian--online-providers (make-hash-table :test #'equal))
 
-(defvar lio--open-url-fn
+(defvar librarian--online--open-url-fn
   #'librarian-browse-open
   ;; #'browse-url
   "Function to use to open search urls.")
 
-(defvar lio--last-provider nil)
+(defvar librarian--online--last-provider nil)
 
-(defun lio-register-provider (name target)
+(defun librarian--online-register-provider (name target)
   "Register a new online search provider.
 Target is either:
 - a format url string
@@ -23,46 +23,46 @@ Target is either:
   (cl-assert (stringp name))
   (cl-assert (or (stringp target) (functionp target)) t
              (format "Failed to Register: %s, %s" target (type-of target)))
-  (puthash name target lio-providers)
+  (puthash name target librarian--online-providers)
   )
 
-(defun lio-get-provider (&optional name force-p)
+(defun librarian--online-get-provider (&optional name force-p)
   "Get the provider to use,
 reuses the last provider
 Returns str or fn
  "
-  (setq lio--last-provider
+  (setq librarian--online--last-provider
         (cond (force-p
                ;; force read
-               (let ((provname (completing-read "Search on: " lio-providers nil t)))
-                 (cons provname (gethash provname lio-providers))))
-              ((gethash name lio-providers)
+               (let ((provname (completing-read "Search on: " librarian--online-providers nil t)))
+                 (cons provname (gethash provname librarian--online-providers))))
+              ((gethash name librarian--online-providers)
                ;; Provided name
-               (cons name (gethash name lio-providers)))
-              (lio--last-provider
-               lio--last-provider)
+               (cons name (gethash name librarian--online-providers)))
+              (librarian--online--last-provider
+               librarian--online--last-provider)
               (t
-               (let ((provname (completing-read "Search on: " lio-providers nil t)))
-                 (cons provname (gethash provname lio-providers))))
+               (let ((provname (completing-read "Search on: " librarian--online-providers nil t)))
+                 (cons provname (gethash provname librarian--online-providers))))
               ))
-  lio--last-provider
+  librarian--online--last-provider
   )
 
 ;;;###autoload
 (defun librarian-online (query &optional provider noconfirm)
   "Look up QUERY in the browser using PROVIDER.
 When called interactively, prompt for a query and, when called for the first
-time, the provider from `lio-providers'. In subsequent calls, reuse
+time, the provider from `librarian--online-providers'. In subsequent calls, reuse
 the previous provider. With a non-nil prefix argument, always prompt for the
 provider.
 
 QUERY must be a string, and PROVIDER must be a key of
-`lio-providers'."
+`librarian--online-providers'."
   (interactive
    (list (when (use-region-p) (librarian--util-get))))
   ;;
   (let* ((thing (thing-at-point 'symbol t))
-         (provider (lio-get-provider provider current-prefix-arg))
+         (provider (librarian--online-get-provider provider current-prefix-arg))
          (provname (car-safe provider))
          (provtarg (cdr-safe provider))
          )
@@ -71,12 +71,12 @@ QUERY must be a string, and PROVIDER must be a key of
     (cond ((functionp provtarg)
            (funcall provtarg (or query thing)))
           (noconfirm
-           (funcall lio--open-url-fn
+           (funcall librarian--online--open-url-fn
                     (url-encode-url (format provtarg (or query thing)))))
           ((stringp provtarg)
            (let ((val (read-string (format "Search for (on %s): " provname) (or query thing)))
                  )
-                 (funcall lio--open-url-fn
+                 (funcall librarian--online--open-url-fn
                           (url-encode-url (format provtarg val)))))
           (_ (user-error "Unknown provider target type: %s -> %s :: %s"
                          provname provtarg (type-of provtarg)))
@@ -115,13 +115,8 @@ QUERY must be a string, and PROVIDER must be a key of
 reuse it on consecutive uses of this command. If BANG, always prompt for search
 engine."
   (interactive "<a><!>")
-  (librarian-online query (lio-get-provider nil bang))
+  (librarian-online query (librarian--online-get-provider nil bang))
   )
 
 (provide 'librarian--online)
 ;;; librarian--online.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lio-" . "librarian--online-")
-;; )
-;; End:

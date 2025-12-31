@@ -3,48 +3,48 @@
   (require 'bibtex)
   )
 
-(defvar lib-indent-equals-column 14)
-(defvar lib-remove-field-newlines-regexp "^=")
+(defvar librarian--biblio-clean-indent-equals-column 14)
+(defvar librarian--biblio-clean-remove-field-newlines-regexp "^=")
 
-(defvar lib-default-stubkey-base "stub_key_")
+(defvar librarian--biblio-clean-default-stubkey-base "stub_key_")
 
-(defvar lib-hooks '(lib-insert-stub-key-h ;; Initial key
+(defvar librarian--biblio-clean-hooks '(librarian--biblio-clean-insert-stub-key-h ;; Initial key
                           ;; Initial formatting
-                          lib-remove-empty-fields-h
-                          lib-dont-break-lines-h
-                          lib-normalise-symbols-h
+                          librarian--biblio-clean-remove-empty-fields-h
+                          librarian--biblio-clean-dont-break-lines-h
+                          librarian--biblio-clean-normalise-symbols-h
                           ;; Specific fields
-                          lib-format-doi-h
-                          lib-check-file-h
-                          lib-expand-shortened-url-h
+                          librarian--biblio-clean-format-doi-h
+                          librarian--biblio-clean-check-file-h
+                          librarian--biblio-clean-expand-shortened-url-h
                           ;; generate key
-                          lib-orcb-key-h
-                          lib-insert-volume-to-key-h
+                          librarian--biblio-clean-orcb-key-h
+                          librarian--biblio-clean-insert-volume-to-key-h
                           ;; Final alignment and indent
-                          lib-remove-whitespace-h
-                          lib-align-h
-                          lib-indent-h
+                          librarian--biblio-clean-remove-whitespace-h
+                          librarian--biblio-clean-align-h
+                          librarian--biblio-clean-indent-h
                           )
   )
 
-(defvar lib-clean-move-entry-on-fail nil)
+(defvar librarian--biblio-clean-clean-move-entry-on-fail nil)
 
-(defvar lib-curl-cmd      "curl")
+(defvar librarian--biblio-clean-curl-cmd      "curl")
 
-(defvar lib-curl-args     '("-sLI" "--connect-timeout" "3"))
+(defvar librarian--biblio-clean-curl-args     '("-sLI" "--connect-timeout" "3"))
 
 
 ;;-- hooks
-(defun lib-insert-stub-key-h ()
+(defun librarian--biblio-clean-insert-stub-key-h ()
   "Insert a stub key if there isnt an actual one"
   (bibtex-beginning-of-entry)
   (search-forward "{" (line-end-position) t)
   (if (looking-at ",")
-      (insert (format "%s%s" lib-default-stubkey-base (random 5000)))
+      (insert (format "%s%s" librarian--biblio-clean-default-stubkey-base (random 5000)))
     )
   )
 
-(defun lib-remove-empty-fields-h ()
+(defun librarian--biblio-clean-remove-empty-fields-h ()
   (bibtex-beginning-of-entry)
   (while (re-search-forward "\\(ALT\\|OPT\\).+= {},?$" nil t)
     (kill-region (line-beginning-position) (line-end-position))
@@ -52,13 +52,13 @@
     )
   )
 
-(defun lib-dont-break-lines-h ()
+(defun librarian--biblio-clean-dont-break-lines-h ()
   " Remove newlines from entries "
   (bibtex-beginning-of-entry)
   (beginning-of-line)
   (let* ((entry (bibtex-parse-entry))
          (keys (mapcar #'car entry))
-         (paths (-reject #'(lambda (x) (string-match lib-remove-field-newlines-regexp x)) keys))
+         (paths (-reject #'(lambda (x) (string-match librarian--biblio-clean-remove-field-newlines-regexp x)) keys))
          (path-texts (mapcar #'bibtex-autokey-get-field paths))
          (path-cleaned (mapcar #'(lambda (x) (replace-regexp-in-string "\n+ *" " " x)) path-texts))
          )
@@ -67,7 +67,7 @@
     )
   )
 
-(defun lib-normalise-symbols-h ()
+(defun librarian--biblio-clean-normalise-symbols-h ()
   " Replace &amp; with &, and @ with \@
 But not in urls
 "
@@ -83,7 +83,7 @@ But not in urls
     )
   )
 
-(defun lib-format-doi-h ()
+(defun librarian--biblio-clean-format-doi-h ()
   "Remove http://dx.doi.org/ in the doi field.
 Used instead of org-ref-bibtex-format-url-if-doi
 and orcb-clean-doi
@@ -97,42 +97,42 @@ and orcb-clean-doi
       (backward-char)
       (insert (replace-regexp-in-string "^http.*?\.org/" "" doi)))))
 
-(defun lib-check-file-h ()
+(defun librarian--biblio-clean-check-file-h ()
   " check any files mentioned actually exist "
   (bibtex-beginning-of-entry)
   (let* ((entry (bibtex-parse-entry))
-         (file-likes (-filter 'identity (mapcar #'lib--get-file-entries entry)))
+         (file-likes (-filter 'identity (mapcar #'librarian--biblio-clean--get-file-entries entry)))
          )
-    (mapc #'lib--check-file-exists file-likes)
+    (mapc #'librarian--biblio-clean--check-file-exists file-likes)
     )
   )
 
-(defun lib--get-file-entries (pair)
+(defun librarian--biblio-clean--get-file-entries (pair)
   (if (string-match "file" (car pair))
       pair
     nil)
   )
 
-(defun lib--check-file-exists (pair)
+(defun librarian--biblio-clean--check-file-exists (pair)
   (let* ((orig (cdr pair))
          (sub (substring
                (cdr pair)
                1 -1))
          (full-target (if (f-relative? sub)
-                          (f-join lib-pdf-loc sub)
+                          (f-join librarian--biblio-clean-pdf-loc sub)
                         (expand-file-name sub))))
     (cl-assert (eq (string-to-char orig) ?{))
     (if (not (f-exists? full-target))
         (signal 'error `("File Not Found: " ,full-target))))
   )
 
-(defun lib-expand-shortened-url-h ()
+(defun librarian--biblio-clean-expand-shortened-url-h ()
   "Expand a shortened url, using CuRL
 https://tecnoysoft.com/en/how-to-obtain-the-real-url-behind-a-shortened-url-using-curl/
  "
   (bibtex-beginning-of-entry)
   (let* ((entry (bibtex-parse-entry))
-         (urls (-reject #'(lambda (x) (or (null x) (string-equal (cdr x) ""))) (mapcar #'lib--url-matcher entry)))
+         (urls (-reject #'(lambda (x) (or (null x) (string-equal (cdr x) ""))) (mapcar #'librarian--biblio-clean--url-matcher entry)))
          (result-buffer (get-buffer-create "*CurlResponse*"))
          expanded
          )
@@ -141,7 +141,7 @@ https://tecnoysoft.com/en/how-to-obtain-the-real-url-behind-a-shortened-url-usin
              do
              (with-current-buffer result-buffer
                (erase-buffer))
-             (apply #'call-process lib-curl-cmd nil result-buffer nil (append lib-curl-args (ensure-list (cdr urlpair))))
+             (apply #'call-process librarian--biblio-clean-curl-cmd nil result-buffer nil (append librarian--biblio-clean-curl-args (ensure-list (cdr urlpair))))
              (with-current-buffer result-buffer
                (goto-char (point-min))
                (when (re-search-forward "^location: " nil t)
@@ -157,13 +157,13 @@ https://tecnoysoft.com/en/how-to-obtain-the-real-url-behind-a-shortened-url-usin
     )
   )
 
-(defun lib--url-matcher (x)
+(defun librarian--biblio-clean--url-matcher (x)
   (when (and (string-match "url" (car x))
              (<= (length (cdr x)) 30))
     (cons (car x) (substring (cdr x) 1 -1)))
   )
 
-(defun lib-orcb-key-h ()
+(defun librarian--biblio-clean-orcb-key-h ()
   "Replace the key in the entry.
 Prompts for replacement if the new key duplicates one already in
 the file.
@@ -174,7 +174,7 @@ Does not modify keys ending in an underscore
   ;; (forward-char -2)
   ;; (unless (looking-at "_")
   (search-forward "{" (line-end-position) t)
-  (when (looking-at lib-default-stubkey-base)
+  (when (looking-at librarian--biblio-clean-default-stubkey-base)
     (let ((key (bibtex-generate-autokey))
           handle-duplicate
           )
@@ -212,7 +212,7 @@ Does not modify keys ending in an underscore
     )
   )
 
-(defun lib-insert-volume-to-key-h ()
+(defun librarian--biblio-clean-insert-volume-to-key-h ()
   (bibtex-beginning-of-entry)
   (search-forward "{" (line-end-position) t)
   (let ((vol (s-replace " " "_" (bibtex-autokey-get-field "volume"))))
@@ -223,7 +223,7 @@ Does not modify keys ending in an underscore
     )
   )
 
-(defun lib-remove-whitespace-h ()
+(defun librarian--biblio-clean-remove-whitespace-h ()
   " Remove newlines from entries "
   (bibtex-beginning-of-entry)
   (beginning-of-line)
@@ -236,7 +236,7 @@ Does not modify keys ending in an underscore
     )
   )
 
-(defun lib-align-h ()
+(defun librarian--biblio-clean-align-h ()
   " Aligns a bibtex entry's '{field} =' "
   (let (start end)
     (bibtex-beginning-of-entry)
@@ -251,19 +251,19 @@ Does not modify keys ending in an underscore
     )
   )
 
-(defun lib-indent-h ()
-  " Indent all fields to lib-indent-equals-column "
+(defun librarian--biblio-clean-indent-h ()
+  " Indent all fields to librarian--biblio-clean-indent-equals-column "
   (bibtex-beginning-of-entry)
   (while (re-search-forward "^.+?= {" nil t)
     (backward-char 3)
-    (indent-to-column lib-indent-equals-column)
+    (indent-to-column librarian--biblio-clean-indent-equals-column)
 
     )
   )
 
 ;;-- end hooks
 
-(defun lib-bibtex-entry-commas ()
+(defun librarian--biblio-clean-bibtex-entry-commas ()
   " Ensure all fields have a comma at the end of the line"
   (bibtex-beginning-of-entry)
   (end-of-line)
@@ -274,7 +274,7 @@ Does not modify keys ending in an underscore
     )
   )
 
-(defun lib-reformat-buffer (&optional read-options)
+(defun librarian--biblio-clean-reformat-buffer (&optional read-options)
   "Reformat all BibTeX entries in buffer or region.
 Without prefix argument, reformatting is based on `bibtex-entry-format'.
 With prefix argument, read options for reformatting from minibuffer.
@@ -292,15 +292,15 @@ If mark is active reformat entries in region, if not in whole buffer."
       (bibtex-progress-message 'done))
     (goto-char pnt)))
 
-(defun lib-error-move-toggle ()
+(defun librarian--biblio-clean-error-move-toggle ()
   (interactive)
-  (setq lib-clean-move-entry-on-fail (not lib-clean-move-entry-on-fail))
-  (message "Error on clean entry %s move to end of file" (if lib-clean-move-entry-on-fail
+  (setq librarian--biblio-clean-clean-move-entry-on-fail (not librarian--biblio-clean-clean-move-entry-on-fail))
+  (message "Error on clean entry %s move to end of file" (if librarian--biblio-clean-clean-move-entry-on-fail
                                                              "will"
                                                            "will not"))
   )
 
-(defun lib-ensure-newline-before-def ()
+(defun librarian--biblio-clean-ensure-newline-before-def ()
   (while (re-search-forward "\\(\n\\)\\(@.+?{.+?,\\)$" nil t)
     (goto-char (match-end 1))
     (insert "\n")
@@ -308,7 +308,7 @@ If mark is active reformat entries in region, if not in whole buffer."
     )
   )
 
-(defun lib-sort-entry ()
+(defun librarian--biblio-clean-sort-entry ()
   "Use org-ref-sort-bibtex-entry, but narrowed to the entry"
   (interactive)
   (save-restriction
@@ -325,8 +325,3 @@ If mark is active reformat entries in region, if not in whole buffer."
 (provide 'librarian--biblio-clean)
 
 ;;; librarian--biblio-clean.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lib-" . "librarian--biblio-clean-")
-;; )
-;; End:

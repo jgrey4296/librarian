@@ -15,7 +15,7 @@
 
 ;;-- online search providers
 
-(defun lib---online-google (query)
+(defun librarian--backend---online-google (query)
   "Search Google, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
          (let ((ivy-initial-inputs-alist `((t . ,query)))
@@ -28,7 +28,7 @@
                :input query)
          t)))
 
-(defun lib---online-duckduckgo (query)
+(defun librarian--backend---online-duckduckgo (query)
   "Search DuckDuckGo, starting with QUERY, with live autocompletion."
   (cond ((and (bound-and-true-p ivy-mode) (fboundp 'counsel-search))
          (let ((ivy-initial-inputs-alist `((t . ,query)))
@@ -38,7 +38,7 @@
 
 ;;-- end online search providers
 
-(defun lib---ffap (identifier)
+(defun librarian--backend---ffap (identifier)
   "Tries to locate the file at point (or in active selection).
 Uses find-in-project functionality (provided by ivy, helm, or project),
 otherwise falling back to ffap.el (find-file-at-point)."
@@ -59,7 +59,7 @@ otherwise falling back to ffap.el (find-file-at-point)."
           ((find-file-at-point (ffap-prompter guess))))
     t))
 
-(defun lib---bug-reference (_identifier)
+(defun librarian--backend---bug-reference (_identifier)
   "Searches for a bug reference in user/repo#123 or #123 format and opens it in
 the browser."
   (require 'bug-reference)
@@ -87,7 +87,7 @@ the browser."
             (bug-reference-fontify (line-beginning-position) (line-end-position)))))))
 
 ;;-- docsets
-(defun lib---docsets-dash (identifier)
+(defun librarian--backend---docsets-dash (identifier)
   " This backend is meant for `librarian-documentation-functions'.
 Docsets can be searched directly via `librarian-docset-consult'."
   (when (fboundp 'dash-docs-docset-path)
@@ -96,7 +96,7 @@ Docsets can be searched directly via `librarian-docset-consult'."
       'deferred))
   )
 
-(defun lib---docsets-online (identifier)
+(defun librarian--backend---docsets-online (identifier)
   "Open the browser and search for IDENTIFIER online.
 When called for the first time, or with a non-nil prefix argument, prompt for
 the search engine to use."
@@ -106,7 +106,7 @@ the search engine to use."
 ;;-- end docsets
 
 ;;-- xref
-(defun lib---xref-show (fn identifier &optional show-fn)
+(defun librarian--backend---xref-show (fn identifier &optional show-fn)
   (let ((xrefs (funcall fn
                         (xref-find-backend)
                         identifier)))
@@ -122,24 +122,19 @@ the search engine to use."
             'deferred
           jumped)))))
 
-(defun lib---xref-definitions (identifier)
+(defun librarian--backend---xref-definitions (identifier)
   "Non-interactive wrapper for `xref-find-definitions'"
   (condition-case _
-      (lib---xref-show 'xref-backend-definitions identifier #'xref--show-defs)
+      (librarian--backend---xref-show 'xref-backend-definitions identifier #'xref--show-defs)
     (cl-no-applicable-method nil)))
 
-(defun lib---xref-references (identifier)
+(defun librarian--backend---xref-references (identifier)
   "Non-interactive wrapper for `xref-find-references'"
   (condition-case _
-      (lib---xref-show 'xref-backend-references identifier #'xref--show-xrefs)
+      (librarian--backend---xref-show 'xref-backend-references identifier #'xref--show-xrefs)
     (cl-no-applicable-method nil)))
 
 ;;-- end xref
 
 (provide 'librarian--backend)
 ;;; librarian-handlers.el ends here
-;; Local Variables:
-;; read-symbol-shorthands: (
-;; ("lib-" . "librarian--backend-")
-;; )
-;; End:
