@@ -7,10 +7,8 @@
 (website-url "https://github.com/jgrey4296/librarian")
 (keywords )
 
-(package-file "librarian.el")
+(package-descriptor "librarian-pkg.el")
 (files "librarian--*.el")
-
-(script "test" "echo \"Error: no test specified\" && exit 1")
 
 (source "gnu")
 (source "melpa")
